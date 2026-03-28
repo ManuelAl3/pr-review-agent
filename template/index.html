@@ -107,6 +107,7 @@
     .comment-body strong { color: var(--text-primary); }
     .comment-body ul { padding-left: 20px; margin: 6px 0; }
     .comment-body li { margin: 3px 0; }
+    .comment-snippet { font-family: var(--font-mono); font-size: 12px; background: var(--bg-primary); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: var(--radius); padding: 10px 14px; margin: 8px 0 0; overflow-x: auto; line-height: 1.6; color: var(--text-secondary); white-space: pre-wrap; word-break: break-word; }
     .line-ref { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin-left: auto; }
 
     /* Card hover actions */
@@ -359,6 +360,10 @@
           </div>
           <textarea class="edit-textarea" id="comBody" placeholder="Detailed explanation (supports HTML: &lt;code&gt;, &lt;ul&gt;, &lt;pre&gt;, &lt;strong&gt;)" style="font-family:var(--font-mono);font-size:12px;min-height:120px" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
           <div class="edit-preview" id="comBodyPreview" style="display:none"></div>
+        </div>
+        <div class="modal-field">
+          <label for="comSnippet">Snippet</label>
+          <textarea class="edit-textarea" id="comSnippet" placeholder="Code snippet: current → expected" style="font-family:var(--font-mono);font-size:12px;min-height:60px" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
         </div>
       </div>
       <div class="modal-footer">
@@ -653,6 +658,7 @@
       document.getElementById('comSeverity').value = 'warning';
       document.getElementById('comTitle').value = '';
       document.getElementById('comBody').value = '';
+      document.getElementById('comSnippet').value = '';
       document.getElementById('comBody').style.display = 'block';
       document.getElementById('comBodyPreview').style.display = 'none';
       // Reset tabs to Write
@@ -686,7 +692,8 @@
         severity: document.getElementById('comSeverity').value,
         category: document.getElementById('comCategory').value,
         title,
-        body: document.getElementById('comBody').value
+        body: document.getElementById('comBody').value,
+        snippet: document.getElementById('comSnippet').value
       });
       closeCommentModal();
       activeFilters = { severity: null, category: null, file: null };
@@ -722,6 +729,7 @@
       reviewData[idx].severity = form.querySelector('[data-field="severity"]').value;
       reviewData[idx].category = form.querySelector('[data-field="category"]').value;
       reviewData[idx].line = parseInt(form.querySelector('[data-field="line"]').value) || 0;
+      reviewData[idx].snippet = form.querySelector('[data-field="snippet"]').value;
       editingIdx = null;
       render();
       await persistToDisk();
@@ -859,6 +867,7 @@
           ${i.line ? `<span class="line-ref">L${i.line}</span>` : ''}
         </div>
         <div class="comment-body">${i.body}</div>
+        ${i.snippet ? `<pre class="comment-snippet">${i.snippet.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>` : ''}
       </div>`;
     }
 
@@ -899,6 +908,7 @@
                 <textarea class="edit-textarea" data-field="body" id="edit-body-${id}" placeholder="Detailed explanation (supports HTML: &lt;code&gt;, &lt;ul&gt;, &lt;pre&gt;, &lt;strong&gt;)" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${bodyEscaped}</textarea>
                 <div class="edit-preview" id="edit-preview-${id}" style="display:none"></div>
               </div>
+              <div class="edit-field"><label>Snippet</label><textarea class="edit-textarea" data-field="snippet" placeholder="Code snippet: current → expected" style="font-family:var(--font-mono);font-size:12px;min-height:60px" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${(i.snippet||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea></div>
             </div>
           </div>
           <div class="edit-form-footer">

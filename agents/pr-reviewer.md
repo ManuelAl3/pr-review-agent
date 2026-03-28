@@ -105,10 +105,21 @@ gh api repos/{OWNER/REPO}/pulls/{PR_NUMBER}/files --paginate --jq '.[] | select(
 
 2. Analyze against REVIEW-PLAN.md checklist categories.
 
-3. For each finding, record:
-   - file path, category, severity (critical/warning/suggestion)
-   - title (short, descriptive), body (detailed explanation with code examples)
-   - line number (approximate)
+3. For each finding, record a JSON object with exactly these fields:
+   - `file` (string): Full file path relative to repo root
+   - `line` (number): Line number where the issue starts (0 if not applicable)
+   - `severity` (string): One of `"critical"`, `"warning"`, `"suggestion"`
+   - `category` (string): Category key matching REVIEW-PLAN.md (e.g. `"architecture"`, `"security"`, `"i18n"`)
+   - `title` (string): Short, descriptive title (under 80 chars)
+   - `body` (string): Detailed explanation of the issue and why it matters. Can include HTML (`<code>`, `<ul>`, `<pre>`, `<strong>`)
+   - `snippet` (string): A concise code snippet showing **what the code looks like now → what it should look like**. Use `→` to separate current from expected. For structural issues, show the problematic pattern. Keep it short (1-5 lines). Example:
+     ```
+     "snippet": "bg-red-900/20 text-red-400 → bg-error-bg text-error"
+     ```
+     ```
+     "snippet": "const repo = new XRepository(handler);\n→ useExecuteUseCase(xUseCase)"
+     ```
+     If no clear code fix exists, show only the problematic code.
 
 **Deduplication rules:**
 - If the same pattern violation appears in 5+ files, consolidate into one finding referencing all files
@@ -119,7 +130,7 @@ gh api repos/{OWNER/REPO}/pulls/{PR_NUMBER}/files --paginate --jq '.[] | select(
 ## Step 3: Generate Review Output
 
 ### 3a. Write findings JSON
-Write the findings array to `$PR_REVIEW_DIR/findings.json`
+Write the findings array to `$PR_REVIEW_DIR/findings.json`. Each finding MUST have all 7 fields: `file`, `line`, `severity`, `category`, `title`, `body`, `snippet`. Never omit `snippet` — every finding needs a code reference showing the issue or the fix.
 
 ### 3b. Update config.json
 Write/update `$PR_REVIEW_DIR/config.json` with PR metadata and category definitions.
