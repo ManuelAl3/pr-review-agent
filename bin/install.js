@@ -112,6 +112,7 @@ function uninstall(configDir) {
   const toRemove = [
     path.join(configDir, 'commands', 'pr-review'),
     path.join(configDir, 'agents', 'pr-reviewer.md'),
+    path.join(configDir, 'agents', 'pr-fixer.md'),
     path.join(configDir, 'pr-review'),
   ];
 
@@ -149,11 +150,14 @@ function install(runtime, configDir) {
   const cmdCount = fs.readdirSync(cmdSrc).length;
   log(`  ${c.green}+${c.reset} ${cmdCount} commands  ${c.dim}→ ${cmdDest}${c.reset}`);
 
-  // 2. Copy agent
-  const agentSrc = path.join(PKG_ROOT, 'agents', 'pr-reviewer.md');
-  const agentDest = path.join(configDir, rt.agentsDir, 'pr-reviewer.md');
-  copyFile(agentSrc, agentDest);
-  log(`  ${c.green}+${c.reset} 1 agent    ${c.dim}→ ${agentDest}${c.reset}`);
+  // 2. Copy agents
+  const agents = ['pr-reviewer.md', 'pr-fixer.md'];
+  const agentsDestDir = path.join(configDir, rt.agentsDir);
+  for (const agent of agents) {
+    const src = path.join(PKG_ROOT, 'agents', agent);
+    if (fs.existsSync(src)) copyFile(src, path.join(agentsDestDir, agent));
+  }
+  log(`  ${c.green}+${c.reset} ${agents.length} agents   ${c.dim}→ ${agentsDestDir}${c.reset}`);
 
   // 3. Copy runtime files (index.html, serve.js, templates/)
   const runtimeFiles = ['index.html', 'serve.js', '.gitignore'];
@@ -191,6 +195,7 @@ function install(runtime, configDir) {
   log(`  ${c.dim}Commands:${c.reset}`);
   log(`    /pr-review:setup   ${c.dim}— Generate REVIEW-PLAN.md for your project${c.reset}`);
   log(`    /pr-review:review  ${c.dim}— Analyze a PR against your review plan${c.reset}`);
+  log(`    /pr-review:fix     ${c.dim}— Fix findings directly in your codebase${c.reset}`);
   log('');
 }
 
