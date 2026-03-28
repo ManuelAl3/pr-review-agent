@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PR Review Preview</title>
+  <style>
+    :root {
+      --bg-primary: #0d1117; --bg-secondary: #161b22; --bg-tertiary: #21262d;
+      --bg-hover: #1c2128; --bg-card: #161b22; --border: #30363d; --border-muted: #21262d;
+      --text-primary: #e6edf3; --text-secondary: #8b949e; --text-muted: #6e7681;
+      --accent-blue: #58a6ff; --accent-purple: #bc8cff; --accent-green: #3fb950;
+      --accent-yellow: #d29922; --accent-red: #f85149; --accent-orange: #db6d28;
+      --badge-critical-bg: rgba(248,81,73,.15); --badge-critical-text: #f85149; --badge-critical-border: rgba(248,81,73,.4);
+      --badge-warning-bg: rgba(210,153,34,.15); --badge-warning-text: #d29922; --badge-warning-border: rgba(210,153,34,.4);
+      --badge-suggestion-bg: rgba(88,166,255,.12); --badge-suggestion-text: #58a6ff; --badge-suggestion-border: rgba(88,166,255,.4);
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+      --radius: 6px;
+    }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--font-sans); background: var(--bg-primary); color: var(--text-primary); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+
+    /* Header */
+    .header { background: var(--bg-secondary); border-bottom: 1px solid var(--border); padding: 16px 24px; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(12px); }
+    .header-inner { max-width: 1280px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .header-logo { width: 32px; height: 32px; background: var(--accent-purple); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: #fff; }
+    .header-title { font-size: 16px; font-weight: 600; }
+    .header-subtitle { font-size: 13px; color: var(--text-secondary); }
+    .header-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(63,185,80,.15); color: var(--accent-green); border: 1px solid rgba(63,185,80,.4); padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+    .header-badge::before { content: ''; width: 8px; height: 8px; background: var(--accent-green); border-radius: 50%; }
+
+    /* Layout */
+    .layout { max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: 280px 1fr; gap: 0; min-height: calc(100vh - 65px); }
+    .sidebar { border-right: 1px solid var(--border); padding: 20px 0; position: sticky; top: 65px; height: calc(100vh - 65px); overflow-y: auto; }
+    .sidebar-section { padding: 0 16px; margin-bottom: 24px; }
+    .sidebar-section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: var(--text-muted); margin-bottom: 8px; padding: 0 8px; display: flex; align-items: center; justify-content: space-between; }
+    .sidebar-section-title .sidebar-action { font-size: 16px; cursor: pointer; opacity: .5; transition: opacity .15s; text-transform: none; letter-spacing: 0; }
+    .sidebar-section-title .sidebar-action:hover { opacity: 1; }
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0 16px; margin-bottom: 20px; }
+    .stat-card { background: var(--bg-tertiary); border: 1px solid var(--border-muted); border-radius: var(--radius); padding: 12px; text-align: center; }
+    .stat-value { font-size: 24px; font-weight: 700; line-height: 1.2; }
+    .stat-label { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+    .stat-critical .stat-value { color: var(--accent-red); }
+    .stat-warning .stat-value { color: var(--accent-yellow); }
+    .stat-suggestion .stat-value { color: var(--accent-blue); }
+    .stat-total .stat-value { color: var(--text-primary); }
+
+    .filter-item { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; border-radius: var(--radius); cursor: pointer; font-size: 13px; transition: background .15s; position: relative; }
+    .filter-item:hover { background: var(--bg-hover); }
+    .filter-item.active { background: var(--bg-tertiary); color: var(--accent-blue); }
+    .filter-item-left { display: flex; align-items: center; gap: 8px; overflow: hidden; }
+    .filter-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .filter-right { display: flex; align-items: center; gap: 2px; }
+    .filter-count { background: var(--bg-tertiary); color: var(--text-secondary); padding: 0 6px; border-radius: 10px; font-size: 11px; font-weight: 500; min-width: 20px; text-align: center; }
+    .filter-action { width: 22px; height: 22px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; border-radius: 4px; display: none; align-items: center; justify-content: center; font-size: 11px; transition: all .1s; padding: 0; }
+    .filter-action:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+    .filter-action.danger:hover { color: var(--accent-red); }
+    .filter-item:hover .filter-action { display: flex; }
+
+    .main { padding: 20px 24px; }
+    .main-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; gap: 12px; flex-wrap: wrap; }
+    .main-title { font-size: 18px; font-weight: 600; }
+    .main-controls { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: var(--radius); font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--bg-tertiary); color: var(--text-primary); transition: all .15s; white-space: nowrap; }
+    .btn:hover { background: var(--bg-hover); border-color: var(--text-muted); }
+    .btn-primary { background: rgba(88,166,255,.15); border-color: rgba(88,166,255,.4); color: var(--accent-blue); }
+    .btn-primary:hover { background: rgba(88,166,255,.25); }
+    .btn-success { background: rgba(63,185,80,.15); border-color: rgba(63,185,80,.4); color: var(--accent-green); }
+    .btn-success:hover { background: rgba(63,185,80,.25); }
+    .btn-danger { background: rgba(248,81,73,.1); border-color: rgba(248,81,73,.3); color: var(--accent-red); }
+    .btn-danger:hover { background: rgba(248,81,73,.2); }
+    .btn:disabled { opacity: .4; cursor: default; pointer-events: none; }
+
+    .search-wrapper { padding: 0 16px; margin-bottom: 16px; }
+    .search-input, .edit-input, .edit-textarea, .edit-select { width: 100%; padding: 6px 10px; font-size: 13px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text-primary); outline: none; transition: border-color .15s; font-family: var(--font-sans); }
+    .search-input:focus, .edit-input:focus, .edit-textarea:focus, .edit-select:focus { border-color: var(--accent-blue); }
+    .search-input::placeholder, .edit-input::placeholder, .edit-textarea::placeholder { color: var(--text-muted); }
+    .edit-textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
+    .edit-select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238b949e' viewBox='0 0 16 16'%3E%3Cpath d='M4.427 7.427l3.396 3.396a.25.25 0 00.354 0l3.396-3.396A.25.25 0 0011.396 7H4.604a.25.25 0 00-.177.427z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; padding-right: 28px; }
+
+    /* Comments */
+    .comment-group { margin-bottom: 24px; }
+    .comment-group-header { display: flex; align-items: center; gap: 8px; padding: 8px 12px; margin-bottom: 2px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius) var(--radius) 0 0; font-size: 13px; cursor: pointer; }
+    .comment-group-header:hover { background: var(--bg-hover); }
+    .file-icon { color: var(--text-muted); font-size: 14px; }
+    .file-path { font-family: var(--font-mono); font-size: 12px; color: var(--accent-blue); flex: 1; }
+    .file-badge-count { font-size: 11px; padding: 0 6px; border-radius: 10px; font-weight: 500; background: var(--bg-tertiary); color: var(--text-secondary); }
+
+    .comment-card { border: 1px solid var(--border); border-top: none; padding: 16px; background: var(--bg-card); transition: background .15s; animation: fadeIn .2s ease-out; position: relative; }
+    .comment-card:last-child { border-radius: 0 0 var(--radius) var(--radius); }
+    .comment-card:hover { background: var(--bg-hover); }
+    .comment-card:hover .card-actions { opacity: 1; }
+    .comment-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+    .severity-badge { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .3px; }
+    .severity-critical { background: var(--badge-critical-bg); color: var(--badge-critical-text); border: 1px solid var(--badge-critical-border); }
+    .severity-warning { background: var(--badge-warning-bg); color: var(--badge-warning-text); border: 1px solid var(--badge-warning-border); }
+    .severity-suggestion { background: var(--badge-suggestion-bg); color: var(--badge-suggestion-text); border: 1px solid var(--badge-suggestion-border); }
+    .category-tag { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-secondary); }
+    .category-tag .filter-dot { width: 6px; height: 6px; }
+    .comment-title { font-size: 14px; font-weight: 600; flex: 1; }
+    .comment-body { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+    .comment-body code { font-family: var(--font-mono); font-size: 12px; background: rgba(110,118,129,.15); padding: 2px 6px; border-radius: 4px; color: var(--text-primary); }
+    .comment-body pre { background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; margin: 8px 0; overflow-x: auto; font-size: 12px; line-height: 1.5; }
+    .comment-body pre code { background: none; padding: 0; }
+    .comment-body strong { color: var(--text-primary); }
+    .comment-body ul { padding-left: 20px; margin: 6px 0; }
+    .comment-body li { margin: 3px 0; }
+    .line-ref { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin-left: auto; }
+
+    /* Card hover actions */
+    .card-actions { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; opacity: 0; transition: opacity .15s; }
+    .card-action-btn { width: 28px; height: 28px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: all .15s; }
+    .card-action-btn:hover { background: var(--bg-tertiary); color: var(--text-primary); border-color: var(--text-muted); }
+    .card-action-btn.danger:hover { color: var(--accent-red); border-color: var(--accent-red); }
+
+    /* Edit form — card takeover */
+    .comment-card.editing { border-color: var(--accent-blue); background: var(--bg-primary); padding: 0; overflow: hidden; }
+    .edit-form { display: flex; flex-direction: column; }
+    .edit-form-header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: rgba(88,166,255,.06); border-bottom: 1px solid rgba(88,166,255,.15); }
+    .edit-form-header-title { font-size: 13px; font-weight: 600; color: var(--accent-blue); flex: 1; }
+    .edit-form-body { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+    .edit-section { display: flex; flex-direction: column; gap: 10px; }
+    .edit-section-label { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .8px; padding-bottom: 4px; border-bottom: 1px solid var(--border-muted); }
+    .edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .edit-field { display: flex; flex-direction: column; gap: 4px; }
+    .edit-field.full { grid-column: 1 / -1; }
+    .edit-field > label { font-size: 11px; font-weight: 600; color: var(--text-secondary); }
+    .edit-field > .edit-input, .edit-field > .edit-select, .edit-field > .edit-textarea { width: 100%; }
+    .edit-textarea { min-height: 100px; resize: vertical; line-height: 1.5; font-family: var(--font-mono); font-size: 12px; }
+    .edit-preview { padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border-muted); border-radius: var(--radius); min-height: 48px; font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+    .edit-preview:empty::before { content: 'Preview will appear here...'; color: var(--text-muted); font-style: italic; }
+    .edit-preview code { font-family: var(--font-mono); font-size: 12px; background: rgba(110,118,129,.15); padding: 2px 6px; border-radius: 4px; color: var(--text-primary); }
+    .edit-preview pre { background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px; margin: 6px 0; overflow-x: auto; font-size: 12px; }
+    .edit-preview ul { padding-left: 20px; margin: 4px 0; }
+    .edit-preview li { margin: 2px 0; }
+    .edit-preview strong { color: var(--text-primary); }
+    .edit-tab-bar { display: flex; border-bottom: 1px solid var(--border-muted); gap: 0; }
+    .edit-tab { padding: 6px 14px; font-size: 12px; font-weight: 500; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all .15s; background: none; border-top: none; border-left: none; border-right: none; }
+    .edit-tab:hover { color: var(--text-secondary); }
+    .edit-tab.active { color: var(--accent-blue); border-bottom-color: var(--accent-blue); }
+    .edit-form-footer { display: flex; gap: 8px; padding: 12px 16px; background: var(--bg-secondary); border-top: 1px solid var(--border); }
+    .edit-form-footer .btn-danger { margin-right: auto; }
+
+    .collapse-icon { transition: transform .2s; font-size: 12px; color: var(--text-muted); }
+    .collapsed .collapse-icon { transform: rotate(-90deg); }
+    .collapsed + .comment-list { display: none; }
+
+    .summary-bar { display: flex; align-items: center; gap: 16px; padding: 12px 16px; margin-bottom: 20px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px; }
+    .summary-bar-label { color: var(--text-secondary); font-weight: 500; }
+    .progress-bar { flex: 1; height: 6px; background: var(--bg-tertiary); border-radius: 3px; overflow: hidden; display: flex; }
+    .progress-segment { height: 100%; transition: width .3s; }
+
+    /* Modal — accessible dialog */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(1,4,9,.7); z-index: 200; align-items: flex-start; justify-content: center; padding-top: min(12vh, 120px); backdrop-filter: blur(6px); opacity: 0; transition: opacity .15s ease; }
+    .modal-overlay.open { display: flex; opacity: 1; }
+    .modal { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 520px; box-shadow: 0 24px 64px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.04) inset; transform: translateY(8px) scale(.98); opacity: 0; transition: transform .2s ease, opacity .2s ease; overflow: hidden; }
+    .modal-overlay.open .modal { transform: translateY(0) scale(1); opacity: 1; }
+    .modal-header { padding: 20px 24px 0; display: flex; align-items: center; justify-content: space-between; }
+    .modal-title { font-size: 16px; font-weight: 600; }
+    .modal-close { width: 32px; height: 32px; border-radius: var(--radius); border: none; background: transparent; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: all .15s; }
+    .modal-close:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+    .modal-body { padding: 20px 24px; }
+    .modal-field { margin-bottom: 16px; }
+    .modal-field:last-child { margin-bottom: 0; }
+    .modal-field label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
+    .modal-field .field-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+    .modal-field .field-error { font-size: 11px; color: var(--accent-red); margin-top: 4px; display: none; }
+    .modal-field.has-error .field-error { display: block; }
+    .modal-field.has-error .edit-input { border-color: var(--accent-red); }
+    .modal-footer { padding: 16px 24px; background: var(--bg-primary); border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
+    .color-picker-row { display: flex; gap: 10px; align-items: center; }
+    .color-swatch { width: 40px; height: 36px; border: 2px solid var(--border); border-radius: var(--radius); cursor: pointer; padding: 0; flex-shrink: 0; transition: border-color .15s; }
+    .color-swatch:hover { border-color: var(--text-muted); }
+    .color-swatch:focus { border-color: var(--accent-blue); outline: none; }
+    .color-preview { width: 10px; height: 10px; border-radius: 50%; display: inline-block; vertical-align: middle; margin-right: 6px; border: 1px solid rgba(255,255,255,.1); }
+    /* Persist status in header */
+    .save-status { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 500; }
+    .save-status-connected { background: rgba(63,185,80,.12); color: var(--accent-green); }
+    .save-status-offline { background: rgba(248,81,73,.1); color: var(--accent-red); }
+
+    /* Empty states */
+    .empty-state { text-align: center; padding: 80px 32px; color: var(--text-muted); }
+    .empty-state-icon { font-size: 56px; margin-bottom: 16px; opacity: .4; line-height: 1; }
+    .empty-state-title { font-size: 18px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
+    .empty-state-text { font-size: 14px; max-width: 420px; margin: 0 auto; line-height: 1.6; }
+    .empty-state-hint { margin-top: 20px; padding: 12px 16px; background: var(--bg-tertiary); border: 1px solid var(--border-muted); border-radius: var(--radius); display: inline-block; font-family: var(--font-mono); font-size: 13px; color: var(--accent-blue); }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 24px; right: 24px; padding: 10px 16px; border-radius: var(--radius); font-size: 13px; font-weight: 500; z-index: 300; animation: slideUp .2s ease-out; }
+    .toast-success { background: rgba(63,185,80,.15); border: 1px solid rgba(63,185,80,.4); color: var(--accent-green); }
+    .toast-error { background: rgba(248,81,73,.15); border: 1px solid rgba(248,81,73,.4); color: var(--accent-red); }
+
+    @media (max-width: 768px) { .layout { grid-template-columns: 1fr; } .sidebar { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); } .stats-grid { grid-template-columns: repeat(4, 1fr); } }
+    ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--bg-tertiary); border-radius: 4px; } ::-webkit-scrollbar-thumb:hover { background: var(--border); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse { 0%,100% { opacity: .4; } 50% { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .loading-pulse { animation: pulse 1.5s ease-in-out infinite; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <div class="header-left">
+        <div class="header-logo">PR</div>
+        <div>
+          <div class="header-title" id="headerTitle">PR Review Preview</div>
+          <div class="header-subtitle" id="headerSubtitle">Loading data...</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="save-status" id="saveStatus"></span>
+        <span class="header-badge" id="headerState" style="display:none"></span>
+        <span style="font-size:12px;color:var(--text-secondary)" id="headerStats"></span>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="search-wrapper"><input type="text" class="search-input" placeholder="Search comments..." id="searchInput"></div>
+      <div class="stats-grid">
+        <div class="stat-card stat-critical"><div class="stat-value" id="criticalCount">-</div><div class="stat-label">Critical</div></div>
+        <div class="stat-card stat-warning"><div class="stat-value" id="warningCount">-</div><div class="stat-label">Warning</div></div>
+        <div class="stat-card stat-suggestion"><div class="stat-value" id="suggestionCount">-</div><div class="stat-label">Suggestion</div></div>
+        <div class="stat-card stat-total"><div class="stat-value" id="totalCount">-</div><div class="stat-label">Total</div></div>
+      </div>
+      <div class="sidebar-section"><div class="sidebar-section-title">Severity</div><div id="severityFilters"></div></div>
+      <div class="sidebar-section"><div class="sidebar-section-title">Category <span class="sidebar-action" title="Add category" onclick="openCategoryModal()">+</span></div><div id="categoryFilters"></div></div>
+      <div class="sidebar-section"><div class="sidebar-section-title">Files</div><div id="fileFilters" style="max-height:300px;overflow-y:auto"></div></div>
+    </aside>
+
+    <main class="main">
+      <div class="main-header">
+        <div class="main-title">Review Comments</div>
+        <div class="main-controls" id="mainControls" style="display:none">
+          <button class="btn" onclick="addNewComment()">+ Add Comment</button>
+          <button class="btn" onclick="expandAll()">Expand All</button>
+          <button class="btn" onclick="collapseAll()">Collapse All</button>
+          <button class="btn btn-primary" onclick="exportJSON()">Export JSON</button>
+        </div>
+      </div>
+      <div class="summary-bar" id="summaryBar" style="display:none"><span class="summary-bar-label">Distribution</span><div class="progress-bar" id="progressBar"></div></div>
+      <div id="commentsList"></div>
+    </main>
+  </div>
+
+  <!-- Category Modal (accessible dialog) -->
+  <div class="modal-overlay" id="categoryModal" role="dialog" aria-modal="true" aria-labelledby="catModalTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="catModalTitle">New Category</div>
+        <button class="modal-close" onclick="closeCategoryModal()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-field" id="fieldCatKey">
+          <label for="catKey">Identifier</label>
+          <input class="edit-input" id="catKey" placeholder="e.g. accessibility" autocomplete="off" spellcheck="false">
+          <div class="field-hint">Lowercase slug used internally. Auto-generated from label if left empty.</div>
+          <div class="field-error">This identifier is already in use.</div>
+        </div>
+        <div class="modal-field" id="fieldCatLabel">
+          <label for="catLabel">Display Name</label>
+          <input class="edit-input" id="catLabel" placeholder="e.g. Accessibility">
+          <div class="field-error">A display name is required.</div>
+        </div>
+        <div class="modal-field">
+          <label>Color</label>
+          <div class="color-picker-row">
+            <input type="color" class="color-swatch" id="catColor" value="#58a6ff">
+            <input class="edit-input" id="catColorHex" value="#58a6ff" placeholder="#hex" spellcheck="false" style="max-width:120px">
+            <span style="flex:1;font-size:12px;color:var(--text-muted)"><span class="color-preview" id="catColorDot" style="background:#58a6ff"></span>Preview</span>
+          </div>
+        </div>
+        <div class="modal-field">
+          <label for="catDesc">Description</label>
+          <input class="edit-input" id="catDesc" placeholder="What does this category check?">
+          <div class="field-hint">Shown as tooltip when hovering the category filter.</div>
+        </div>
+      </div>
+      <div class="modal-footer" id="catModalFooterEdit" style="display:none">
+        <button class="btn btn-danger" id="catDeleteBtn" onclick="deleteCategoryFromModal()">Delete</button>
+        <div style="flex:1"></div>
+        <button class="btn" onclick="closeCategoryModal()">Cancel</button>
+        <button class="btn btn-primary" id="catUpdateBtn" onclick="saveCategoryFromModal()">Update</button>
+      </div>
+      <div class="modal-footer" id="catModalFooterCreate">
+        <button class="btn" onclick="closeCategoryModal()">Cancel</button>
+        <button class="btn btn-primary" id="catSaveBtn" onclick="saveCategoryFromModal()">Create Category</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Category Confirmation -->
+  <div class="modal-overlay" id="deleteCatModal" role="dialog" aria-modal="true" aria-labelledby="delCatTitle">
+    <div class="modal" style="max-width:440px">
+      <div class="modal-header">
+        <div class="modal-title" id="delCatTitle">Delete Category</div>
+        <button class="modal-close" onclick="closeDeleteCatModal()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px" id="delCatMsg"></p>
+        <div class="modal-field" id="delCatReassignField" style="display:none">
+          <label for="delCatReassign">Reassign findings to</label>
+          <select class="edit-select" id="delCatReassign"></select>
+          <div class="field-hint">Findings using this category will be moved to the selected one.</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeDeleteCatModal()">Cancel</button>
+        <button class="btn btn-danger" onclick="confirmDeleteCategory()">Delete Category</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Comment Modal -->
+  <div class="modal-overlay" id="commentModal" role="dialog" aria-modal="true" aria-labelledby="commentModalTitle">
+    <div class="modal" style="max-width:600px">
+      <div class="modal-header">
+        <div class="modal-title" id="commentModalTitle">New Comment</div>
+        <button class="modal-close" onclick="closeCommentModal()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-field" id="fieldComFile">
+          <label for="comFile">File path</label>
+          <input class="edit-input" id="comFile" placeholder="src/modules/feature/component.tsx" spellcheck="false" style="font-family:var(--font-mono);font-size:12px">
+          <div class="field-error">A file path is required.</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+          <div class="modal-field">
+            <label for="comLine">Line</label>
+            <input class="edit-input" id="comLine" type="number" value="1" min="0">
+          </div>
+          <div class="modal-field">
+            <label for="comSeverity">Severity</label>
+            <select class="edit-select" id="comSeverity">
+              <option value="critical">Critical</option>
+              <option value="warning" selected>Warning</option>
+              <option value="suggestion">Suggestion</option>
+            </select>
+          </div>
+          <div class="modal-field">
+            <label for="comCategory">Category</label>
+            <select class="edit-select" id="comCategory"></select>
+          </div>
+        </div>
+        <div class="modal-field" id="fieldComTitle">
+          <label for="comTitle">Title</label>
+          <input class="edit-input" id="comTitle" placeholder="Short, descriptive title for the finding">
+          <div class="field-error">A title is required.</div>
+        </div>
+        <div class="modal-field">
+          <label>Body</label>
+          <div class="edit-tab-bar">
+            <button class="edit-tab active" onclick="switchCommentBodyTab('write',this)">Write</button>
+            <button class="edit-tab" onclick="switchCommentBodyTab('preview',this)">Preview</button>
+          </div>
+          <textarea class="edit-textarea" id="comBody" placeholder="Detailed explanation (supports HTML: &lt;code&gt;, &lt;ul&gt;, &lt;pre&gt;, &lt;strong&gt;)" style="font-family:var(--font-mono);font-size:12px;min-height:120px" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+          <div class="edit-preview" id="comBodyPreview" style="display:none"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeCommentModal()">Cancel</button>
+        <button class="btn btn-success" onclick="saveNewComment()">Create Comment</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete File Findings Confirmation -->
+  <div class="modal-overlay" id="deleteFileModal" role="dialog" aria-modal="true" aria-labelledby="delFileTitle">
+    <div class="modal" style="max-width:440px">
+      <div class="modal-header">
+        <div class="modal-title" id="delFileTitle">Remove file findings</div>
+        <button class="modal-close" onclick="closeDeleteFileModal()" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:13px;color:var(--text-secondary)" id="delFileMsg"></p>
+        <div style="margin-top:12px;padding:8px 12px;background:var(--bg-tertiary);border:1px solid var(--border-muted);border-radius:var(--radius);font-family:var(--font-mono);font-size:12px;color:var(--accent-blue);word-break:break-all" id="delFilePath"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeDeleteFileModal()">Cancel</button>
+        <button class="btn btn-danger" onclick="confirmDeleteFile()">Remove findings</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== State =====
+    let reviewData = [], config = {}, categoryLabels = {}, categoryColors = {};
+    let severityIcons = { critical: '\u26d4', warning: '\u26a0\ufe0f', suggestion: '\ud83d\udca1' };
+    let activeFilters = { severity: null, category: null, file: null };
+    let editingIdx = null, serverAvailable = false;
+    let catModalMode = 'create', catModalOriginalKey = null, pendingDeleteCatKey = null, pendingDeleteFile = null;
+    const severityOrder = { critical: 0, warning: 1, suggestion: 2 };
+
+    // ===== Helpers =====
+    const getCatLabel = c => categoryLabels[c] || c;
+    const getSevIcon = s => severityIcons[s] || '';
+    const shortFile = p => { const s = p.split('/'); return s.length > 2 ? '.../' + s.slice(-2).join('/') : p; };
+    const escAttr = s => s.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+    function toast(msg, type = 'success') {
+      const t = document.createElement('div');
+      t.className = `toast toast-${type}`;
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 3000);
+    }
+
+    function setSaveStatus(connected) {
+      const el = document.getElementById('saveStatus');
+      if (connected) { el.className = 'save-status save-status-connected'; el.textContent = 'Auto-save'; }
+      else { el.className = 'save-status save-status-offline'; el.textContent = 'Read-only'; }
+    }
+
+    // ===== Persist via local server API =====
+    async function checkServer() {
+      try {
+        const ac = new AbortController();
+        const timer = setTimeout(() => ac.abort(), 2000);
+        const r = await fetch('/api/health', { signal: ac.signal });
+        clearTimeout(timer);
+        if (r.ok) { serverAvailable = true; setSaveStatus(true); return; }
+      } catch (_) {}
+      serverAvailable = false;
+      setSaveStatus(false);
+    }
+
+    /** Persist both JSONs to disk via the local server API. */
+    async function persistToDisk() {
+      if (!serverAvailable) {
+        // Server wasn't detected at boot — try once more in case it started after page load
+        await checkServer();
+        if (!serverAvailable) {
+          toast('Server not running — run: node .claude/pr-review/serve.js', 'error');
+          return;
+        }
+      }
+      try {
+        const [r1, r2] = await Promise.all([
+          fetch('/api/save/findings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(reviewData, null, 2) }),
+          fetch('/api/save/config', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(config, null, 2) }),
+        ]);
+        if (!r1.ok || !r2.ok) { toast('Save failed', 'error'); return; }
+        toast('Saved');
+      } catch (e) { toast('Connection lost', 'error'); serverAvailable = false; setSaveStatus(false); }
+    }
+
+    function exportJSON() {
+      const b = new Blob([JSON.stringify(reviewData, null, 2)], { type: 'application/json' });
+      const u = URL.createObjectURL(b); const a = document.createElement('a');
+      a.href = u; a.download = `pr-review-${config.pr?.number || 'export'}.json`; a.click();
+      URL.revokeObjectURL(u);
+    }
+
+    // ===== Category Modal (Create / Edit) =====
+    function resetCatModal() {
+      ['fieldCatKey', 'fieldCatLabel'].forEach(id => document.getElementById(id)?.classList.remove('has-error'));
+      document.getElementById('catKey').value = '';
+      document.getElementById('catKey').removeAttribute('data-manual');
+      document.getElementById('catLabel').value = '';
+      document.getElementById('catColor').value = '#58a6ff';
+      document.getElementById('catColorHex').value = '#58a6ff';
+      document.getElementById('catColorDot').style.background = '#58a6ff';
+      document.getElementById('catDesc').value = '';
+    }
+
+    function openCategoryModal() {
+      resetCatModal();
+      catModalMode = 'create';
+      catModalOriginalKey = null;
+      document.getElementById('catModalTitle').textContent = 'New Category';
+      document.getElementById('catKey').removeAttribute('disabled');
+      document.getElementById('fieldCatKey').querySelector('.field-error').textContent = 'This identifier is already in use.';
+      document.getElementById('catModalFooterCreate').style.display = 'flex';
+      document.getElementById('catModalFooterEdit').style.display = 'none';
+      document.getElementById('categoryModal').classList.add('open');
+      setTimeout(() => document.getElementById('catLabel').focus(), 100);
+    }
+
+    function openEditCategoryModal(key) {
+      resetCatModal();
+      catModalMode = 'edit';
+      catModalOriginalKey = key;
+      const cat = config.categories?.[key] || {};
+      document.getElementById('catModalTitle').textContent = 'Edit Category';
+      document.getElementById('catKey').value = key;
+      document.getElementById('catKey').setAttribute('disabled', '');
+      document.getElementById('catKey').dataset.manual = '1';
+      document.getElementById('catLabel').value = cat.label || key;
+      const color = cat.color || categoryColors[key] || '#58a6ff';
+      document.getElementById('catColor').value = color;
+      document.getElementById('catColorHex').value = color;
+      document.getElementById('catColorDot').style.background = color;
+      document.getElementById('catDesc').value = cat.description || '';
+      document.getElementById('catModalFooterCreate').style.display = 'none';
+      document.getElementById('catModalFooterEdit').style.display = 'flex';
+      document.getElementById('categoryModal').classList.add('open');
+      setTimeout(() => document.getElementById('catLabel').focus(), 100);
+    }
+
+    function closeCategoryModal() {
+      document.getElementById('categoryModal').classList.remove('open');
+    }
+
+    async function saveCategoryFromModal() {
+      const label = document.getElementById('catLabel').value.trim();
+      let key;
+
+      if (catModalMode === 'edit') {
+        key = catModalOriginalKey;
+      } else {
+        key = document.getElementById('catKey').value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-');
+        if (!key && label) key = label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      }
+
+      // Validate
+      let valid = true;
+      document.getElementById('fieldCatLabel').classList.remove('has-error');
+      document.getElementById('fieldCatKey').classList.remove('has-error');
+      if (!label) { document.getElementById('fieldCatLabel').classList.add('has-error'); valid = false; }
+      if (catModalMode === 'create' && key && categoryLabels[key]) { document.getElementById('fieldCatKey').classList.add('has-error'); valid = false; }
+      if (!valid) return;
+      if (!key) key = 'category-' + Date.now();
+
+      const color = document.getElementById('catColorHex').value.trim() || '#58a6ff';
+      const desc = document.getElementById('catDesc').value.trim();
+
+      categoryLabels[key] = label;
+      categoryColors[key] = color;
+      config.categories = config.categories || {};
+      config.categories[key] = { label, color, description: desc };
+      injectCategoryCSS();
+      closeCategoryModal();
+      render();
+      await persistToDisk();
+    }
+
+    // ===== Delete Category =====
+    function openDeleteCategoryModal(key) {
+      pendingDeleteCatKey = key;
+      const count = reviewData.filter(i => i.category === key).length;
+      const label = getCatLabel(key);
+
+      document.getElementById('delCatTitle').textContent = `Delete "${label}"`;
+
+      if (count === 0) {
+        document.getElementById('delCatMsg').innerHTML = `The category <strong>${label}</strong> has no findings. It will be removed from the configuration.`;
+        document.getElementById('delCatReassignField').style.display = 'none';
+      } else {
+        document.getElementById('delCatMsg').innerHTML = `The category <strong>${label}</strong> is used by <strong>${count} finding${count > 1 ? 's' : ''}</strong>. Choose a category to reassign them to before deleting.`;
+        document.getElementById('delCatReassignField').style.display = 'block';
+        const otherCats = Object.keys(categoryLabels).filter(k => k !== key);
+        document.getElementById('delCatReassign').innerHTML = otherCats.map(k =>
+          `<option value="${k}">${getCatLabel(k)}</option>`
+        ).join('');
+      }
+
+      closeCategoryModal(); // close edit modal if open
+      document.getElementById('deleteCatModal').classList.add('open');
+    }
+
+    function closeDeleteCatModal() {
+      document.getElementById('deleteCatModal').classList.remove('open');
+      pendingDeleteCatKey = null;
+    }
+
+    async function confirmDeleteCategory() {
+      const key = pendingDeleteCatKey;
+      if (!key) return;
+
+      const count = reviewData.filter(i => i.category === key).length;
+
+      // Reassign findings if needed
+      if (count > 0) {
+        const newCat = document.getElementById('delCatReassign').value;
+        if (!newCat) { toast('Select a category to reassign to', 'error'); return; }
+        reviewData.forEach(item => { if (item.category === key) item.category = newCat; });
+      }
+
+      // Remove from state
+      delete categoryLabels[key];
+      delete categoryColors[key];
+      if (config.categories) delete config.categories[key];
+
+      // Clear filter if active
+      if (activeFilters.category === key) activeFilters.category = null;
+
+      injectCategoryCSS();
+      closeDeleteCatModal();
+      render();
+      await persistToDisk();
+    }
+
+    // Also allow delete from edit modal
+    function deleteCategoryFromModal() {
+      const key = catModalOriginalKey;
+      if (!key) return;
+      closeCategoryModal();
+      openDeleteCategoryModal(key);
+    }
+
+    // ===== Delete File Findings =====
+    function openDeleteFileModal(file) {
+      pendingDeleteFile = file;
+      const count = reviewData.filter(i => i.file === file).length;
+      const display = file || '(no file)';
+      document.getElementById('delFileTitle').textContent = 'Remove file findings';
+      document.getElementById('delFileMsg').innerHTML = `This will remove <strong>${count} finding${count !== 1 ? 's' : ''}</strong> associated with this file. This action cannot be undone.`;
+      document.getElementById('delFilePath').textContent = display;
+      document.getElementById('deleteFileModal').classList.add('open');
+    }
+
+    function closeDeleteFileModal() {
+      document.getElementById('deleteFileModal').classList.remove('open');
+      pendingDeleteFile = null;
+    }
+
+    async function confirmDeleteFile() {
+      if (pendingDeleteFile === null) return;
+      reviewData = reviewData.filter(i => i.file !== pendingDeleteFile);
+      if (activeFilters.file === pendingDeleteFile) activeFilters.file = null;
+      closeDeleteFileModal();
+      if (reviewData.length === 0) showEmptyState('all-clear');
+      else render();
+      await persistToDisk();
+    }
+
+    // Sync color picker <-> hex input <-> preview dot
+    document.getElementById('catColor').addEventListener('input', e => {
+      document.getElementById('catColorHex').value = e.target.value;
+      document.getElementById('catColorDot').style.background = e.target.value;
+    });
+    document.getElementById('catColorHex').addEventListener('input', e => {
+      const v = e.target.value;
+      if (/^#[0-9a-f]{6}$/i.test(v)) { document.getElementById('catColor').value = v; document.getElementById('catColorDot').style.background = v; }
+    });
+    // Auto-generate key from label as user types (only in create mode)
+    document.getElementById('catLabel').addEventListener('input', e => {
+      const keyEl = document.getElementById('catKey');
+      if (!keyEl.dataset.manual && catModalMode === 'create') keyEl.value = e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    });
+    document.getElementById('catKey').addEventListener('input', () => { document.getElementById('catKey').dataset.manual = '1'; });
+
+    // ===== New Comment Modal =====
+    function addNewComment() {
+      // Reset fields
+      ['fieldComFile', 'fieldComTitle'].forEach(id => document.getElementById(id)?.classList.remove('has-error'));
+      document.getElementById('comFile').value = '';
+      document.getElementById('comLine').value = '1';
+      document.getElementById('comSeverity').value = 'warning';
+      document.getElementById('comTitle').value = '';
+      document.getElementById('comBody').value = '';
+      document.getElementById('comBody').style.display = 'block';
+      document.getElementById('comBodyPreview').style.display = 'none';
+      // Reset tabs to Write
+      document.querySelectorAll('#commentModal .edit-tab').forEach((t,i) => t.classList.toggle('active', i === 0));
+      // Populate category select
+      document.getElementById('comCategory').innerHTML = Object.keys(categoryLabels).map(k =>
+        `<option value="${k}">${getCatLabel(k)}</option>`
+      ).join('');
+      document.getElementById('commentModal').classList.add('open');
+      setTimeout(() => document.getElementById('comFile').focus(), 100);
+    }
+
+    function closeCommentModal() {
+      document.getElementById('commentModal').classList.remove('open');
+    }
+
+    async function saveNewComment() {
+      const file = document.getElementById('comFile').value.trim();
+      const title = document.getElementById('comTitle').value.trim();
+      // Validate
+      let valid = true;
+      document.getElementById('fieldComFile').classList.remove('has-error');
+      document.getElementById('fieldComTitle').classList.remove('has-error');
+      if (!file) { document.getElementById('fieldComFile').classList.add('has-error'); valid = false; }
+      if (!title) { document.getElementById('fieldComTitle').classList.add('has-error'); valid = false; }
+      if (!valid) return;
+
+      reviewData.unshift({
+        file,
+        line: parseInt(document.getElementById('comLine').value) || 0,
+        severity: document.getElementById('comSeverity').value,
+        category: document.getElementById('comCategory').value,
+        title,
+        body: document.getElementById('comBody').value
+      });
+      closeCommentModal();
+      activeFilters = { severity: null, category: null, file: null };
+      render();
+      await persistToDisk();
+    }
+
+    function switchCommentBodyTab(tab, btnEl) {
+      const textarea = document.getElementById('comBody');
+      const preview = document.getElementById('comBodyPreview');
+      btnEl.parentElement.querySelectorAll('.edit-tab').forEach(t => t.classList.remove('active'));
+      btnEl.classList.add('active');
+      if (tab === 'preview') {
+        preview.innerHTML = textarea.value || '';
+        textarea.style.display = 'none';
+        preview.style.display = 'block';
+      } else {
+        textarea.style.display = 'block';
+        preview.style.display = 'none';
+        textarea.focus();
+      }
+    }
+
+    function startEdit(idx) { editingIdx = idx; render(); }
+    function cancelEdit() { editingIdx = null; render(); }
+
+    async function saveEdit(idx) {
+      const form = document.getElementById(`edit-form-${idx}`);
+      if (!form) return;
+      reviewData[idx].file = form.querySelector('[data-field="file"]').value.trim();
+      reviewData[idx].title = form.querySelector('[data-field="title"]').value.trim();
+      reviewData[idx].body = form.querySelector('[data-field="body"]').value;
+      reviewData[idx].severity = form.querySelector('[data-field="severity"]').value;
+      reviewData[idx].category = form.querySelector('[data-field="category"]').value;
+      reviewData[idx].line = parseInt(form.querySelector('[data-field="line"]').value) || 0;
+      editingIdx = null;
+      render();
+      await persistToDisk();
+    }
+
+    async function deleteComment(idx) {
+      reviewData.splice(idx, 1);
+      editingIdx = null;
+      if (reviewData.length === 0) showEmptyState('all-clear');
+      else render();
+      await persistToDisk();
+    }
+
+    // ===== Empty States =====
+    function showEmptyState(type) {
+      const el = document.getElementById('commentsList');
+      const states = {
+        loading: { icon: '\u23f3', title: 'Loading review data...', text: 'Fetching findings.json and config.json', hint: null, cls: 'loading-pulse' },
+        'no-analysis': { icon: '\ud83d\udcdd', title: 'No review analysis found', text: 'No <code>findings.json</code> was found. Run the PR review agent to generate the analysis, or create the file manually.', hint: '/pr-review:review &lt;pr-url&gt;' },
+        'all-clear': { icon: '\u2705', title: 'All clear!', text: 'The analysis found <strong>0 issues</strong>. This PR looks good against the configured review criteria.', hint: null },
+        'no-match': { icon: '\ud83d\udd0d', title: 'No results', text: 'No comments match the current filters. Try adjusting the search or clearing a filter.', hint: null },
+        'fetch-error': { icon: '\u26a0\ufe0f', title: 'Could not load data', text: 'Failed to fetch JSON files. If using <code>file://</code>, you need a local server.', hint: 'node .claude/pr-review/serve.js' }
+      };
+      const s = states[type] || states['no-analysis'];
+      el.innerHTML = `<div class="empty-state"><div class="empty-state-icon ${s.cls||''}">${s.icon}</div><div class="empty-state-title">${s.title}</div><div class="empty-state-text">${s.text}</div>${s.hint ? `<div class="empty-state-hint">${s.hint}</div>` : ''}</div>`;
+      ['criticalCount','warningCount','suggestionCount','totalCount'].forEach(id => { document.getElementById(id).textContent = type === 'loading' ? '-' : '0'; });
+    }
+
+    // ===== Header & CSS =====
+    function renderHeader() {
+      const pr = config.pr;
+      if (!pr) { document.getElementById('headerTitle').textContent = 'PR Review Preview'; document.getElementById('headerSubtitle').textContent = 'No config.json loaded'; return; }
+      document.title = `PR Review \u2014 ${pr.repo || ''}#${pr.number || '?'}`;
+      document.getElementById('headerTitle').innerHTML = `${pr.title || 'Untitled'} <span style="color:var(--text-muted);font-weight:400">#${pr.number || '?'}</span>`;
+      document.getElementById('headerSubtitle').innerHTML = `${pr.repo || ''} &middot; ${pr.head || '?'} &rarr; ${pr.base || '?'}`;
+      const badge = document.getElementById('headerState'); badge.textContent = (pr.state || '')[0]?.toUpperCase() + (pr.state || '').slice(1); badge.style.display = 'inline-flex';
+      document.getElementById('headerStats').textContent = `${pr.changedFiles || 0} files \u00b7 +${(pr.additions||0).toLocaleString()} / -${(pr.deletions||0).toLocaleString()}`;
+    }
+
+    function injectCategoryCSS() {
+      let el = document.getElementById('dynamic-cat-css');
+      if (!el) { el = document.createElement('style'); el.id = 'dynamic-cat-css'; document.head.appendChild(el); }
+      el.textContent = Object.entries(categoryColors).map(([k,v]) => `.cat-${k}{background:${v}}`).join('\n');
+    }
+
+    // ===== Render =====
+    function render() {
+      if (reviewData.length === 0) return;
+
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const filtered = reviewData.map((item, i) => ({ ...item, _idx: i })).filter(item => {
+        if (activeFilters.severity && item.severity !== activeFilters.severity) return false;
+        if (activeFilters.category && item.category !== activeFilters.category) return false;
+        if (activeFilters.file && item.file !== activeFilters.file) return false;
+        if (search && !(item.title + item.body + item.file + item.category).toLowerCase().includes(search)) return false;
+        return true;
+      });
+
+      const total = filtered.length, critical = filtered.filter(i => i.severity === 'critical').length;
+      const warning = filtered.filter(i => i.severity === 'warning').length, suggestion = filtered.filter(i => i.severity === 'suggestion').length;
+      document.getElementById('criticalCount').textContent = critical;
+      document.getElementById('warningCount').textContent = warning;
+      document.getElementById('suggestionCount').textContent = suggestion;
+      document.getElementById('totalCount').textContent = total;
+
+      document.getElementById('summaryBar').style.display = total > 0 ? 'flex' : 'none';
+      if (total > 0) document.getElementById('progressBar').innerHTML = `<div class="progress-segment" style="width:${critical/total*100}%;background:var(--accent-red)"></div><div class="progress-segment" style="width:${warning/total*100}%;background:var(--accent-yellow)"></div><div class="progress-segment" style="width:${suggestion/total*100}%;background:var(--accent-blue)"></div>`;
+
+      // Sidebar
+      document.getElementById('severityFilters').innerHTML = ['critical','warning','suggestion'].map(sev => {
+        const c = reviewData.filter(i => i.severity === sev).length, a = activeFilters.severity === sev ? ' active' : '';
+        return `<div class="filter-item${a}" onclick="toggleFilter('severity','${sev}')"><span class="filter-item-left"><span class="severity-badge severity-${sev}" style="font-size:10px">${sev}</span></span><span class="filter-count">${c}</span></div>`;
+      }).join('');
+
+      // Merge categories from findings + config so new empty categories are visible
+      const catsFromData = new Set(reviewData.map(i => i.category));
+      const catsFromConfig = new Set(Object.keys(categoryLabels));
+      const allCats = [...new Set([...catsFromData, ...catsFromConfig])];
+      document.getElementById('categoryFilters').innerHTML = allCats.map(cat => {
+        const c = reviewData.filter(i => i.category === cat).length, a = activeFilters.category === cat ? ' active' : '';
+        return `<div class="filter-item${a}">
+          <span class="filter-item-left" onclick="toggleFilter('category','${cat}')"><span class="filter-dot cat-${cat}"></span> ${getCatLabel(cat)}</span>
+          <span class="filter-right">
+            <span class="filter-count" onclick="toggleFilter('category','${cat}')">${c}</span>
+            <button class="filter-action" onclick="event.stopPropagation();openEditCategoryModal('${cat}')" title="Edit">\u270e</button>
+            <button class="filter-action danger" onclick="event.stopPropagation();openDeleteCategoryModal('${cat}')" title="Delete">\u2715</button>
+          </span>
+        </div>`;
+      }).join('');
+
+      const files = [...new Set(reviewData.map(i => i.file))];
+      document.getElementById('fileFilters').innerHTML = files.map(f => {
+        const c = reviewData.filter(i => i.file === f).length, a = activeFilters.file === f ? ' active' : '';
+        const escaped = f.replace(/'/g, "\\'");
+        return `<div class="filter-item${a}">
+          <span class="filter-item-left" style="min-width:0" onclick="toggleFilter('file','${escaped}')"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-family:var(--font-mono);${f ? '' : 'font-style:italic;color:var(--text-muted)'}">${f ? shortFile(f) : '(no file)'}</span></span>
+          <span class="filter-right">
+            <span class="filter-count" onclick="toggleFilter('file','${escaped}')">${c}</span>
+            <button class="filter-action danger" onclick="event.stopPropagation();openDeleteFileModal('${escaped}')" title="Remove all findings for this file">\u2715</button>
+          </span>
+        </div>`;
+      }).join('');
+
+      // Comments
+      const el = document.getElementById('commentsList');
+      if (filtered.length === 0) { showEmptyState('no-match'); return; }
+
+      // Group — but preserve _idx for editing
+      const groups = {};
+      filtered.forEach(item => { (groups[item.file] ||= []).push(item); });
+      const sortedGroups = Object.entries(groups).sort(([,a],[,b]) => Math.min(...a.map(i => severityOrder[i.severity])) - Math.min(...b.map(i => severityOrder[i.severity])));
+
+      el.innerHTML = sortedGroups.map(([file, items]) => {
+        const sorted = items.sort((a,b) => severityOrder[a.severity] - severityOrder[b.severity]);
+        return `<div class="comment-group">
+          <div class="comment-group-header" onclick="this.classList.toggle('collapsed')">
+            <span class="collapse-icon">\u25bc</span><span class="file-icon">\ud83d\udcc4</span>
+            <span class="file-path" ${file ? '' : 'style="font-style:italic;color:var(--text-muted)"'}>${file ? shortFile(file) : '(new comment)'}</span><span class="file-badge-count">${items.length}</span>
+          </div>
+          <div class="comment-list">${sorted.map(i => editingIdx === i._idx ? renderEditForm(i) : renderCard(i)).join('')}</div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderCard(i) {
+      return `<div class="comment-card">
+        <div class="card-actions">
+          <button class="card-action-btn" onclick="event.stopPropagation();startEdit(${i._idx})" title="Edit">\u270e</button>
+          <button class="card-action-btn danger" onclick="event.stopPropagation();if(confirm('Delete this comment?'))deleteComment(${i._idx})" title="Delete">\u2715</button>
+        </div>
+        <div class="comment-header">
+          <span class="severity-badge severity-${i.severity}">${getSevIcon(i.severity)} ${i.severity}</span>
+          <span class="category-tag"><span class="filter-dot cat-${i.category}"></span>${getCatLabel(i.category)}</span>
+          <span class="comment-title">${i.title}</span>
+          ${i.line ? `<span class="line-ref">L${i.line}</span>` : ''}
+        </div>
+        <div class="comment-body">${i.body}</div>
+      </div>`;
+    }
+
+    function renderEditForm(i) {
+      const id = i._idx;
+      const bodyEscaped = i.body.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      return `<div class="comment-card editing">
+        <div class="edit-form" id="edit-form-${id}">
+          <div class="edit-form-header">
+            <span class="severity-badge severity-${i.severity}" style="font-size:10px">${getSevIcon(i.severity)} ${i.severity}</span>
+            <span class="edit-form-header-title">${i.title || 'New comment'}</span>
+            <span class="line-ref">#${id + 1}</span>
+          </div>
+          <div class="edit-form-body">
+            <div class="edit-section">
+              <div class="edit-section-label">Location</div>
+              <div class="edit-grid">
+                <div class="edit-field full"><label>File path</label><input class="edit-input" data-field="file" value="${escAttr(i.file)}" placeholder="src/modules/feature/component.tsx" spellcheck="false" style="font-family:var(--font-mono);font-size:12px"></div>
+                <div class="edit-field"><label>Line</label><input class="edit-input" data-field="line" type="number" value="${i.line||0}" min="0"></div>
+                <div class="edit-field"><label>&nbsp;</label></div>
+              </div>
+            </div>
+            <div class="edit-section">
+              <div class="edit-section-label">Classification</div>
+              <div class="edit-grid">
+                <div class="edit-field"><label>Severity</label><select class="edit-select" data-field="severity" onchange="updateEditHeader(${id},this)"><option value="critical" ${i.severity==='critical'?'selected':''}>Critical</option><option value="warning" ${i.severity==='warning'?'selected':''}>Warning</option><option value="suggestion" ${i.severity==='suggestion'?'selected':''}>Suggestion</option></select></div>
+                <div class="edit-field"><label>Category</label><select class="edit-select" data-field="category">${Object.keys(categoryLabels).map(k=>`<option value="${k}" ${i.category===k?'selected':''}>${getCatLabel(k)}</option>`).join('')}</select></div>
+              </div>
+            </div>
+            <div class="edit-section">
+              <div class="edit-section-label">Content</div>
+              <div class="edit-field"><label>Title</label><input class="edit-input" data-field="title" value="${escAttr(i.title)}" placeholder="Short, descriptive title for the finding" oninput="updateEditHeader(${id})"></div>
+              <div class="edit-field">
+                <div class="edit-tab-bar">
+                  <button class="edit-tab active" onclick="switchBodyTab(${id},'write',this)">Write</button>
+                  <button class="edit-tab" onclick="switchBodyTab(${id},'preview',this)">Preview</button>
+                </div>
+                <textarea class="edit-textarea" data-field="body" id="edit-body-${id}" placeholder="Detailed explanation (supports HTML: &lt;code&gt;, &lt;ul&gt;, &lt;pre&gt;, &lt;strong&gt;)" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${bodyEscaped}</textarea>
+                <div class="edit-preview" id="edit-preview-${id}" style="display:none"></div>
+              </div>
+            </div>
+          </div>
+          <div class="edit-form-footer">
+            <button class="btn btn-danger" onclick="if(confirm('Delete this comment?'))deleteComment(${id})">Delete</button>
+            <button class="btn" onclick="cancelEdit()">Cancel</button>
+            <button class="btn btn-success" onclick="saveEdit(${id})">Save Changes</button>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    function updateEditHeader(idx, selectEl) {
+      const form = document.getElementById(`edit-form-${idx}`);
+      if (!form) return;
+      const header = form.querySelector('.edit-form-header');
+      const titleInput = form.querySelector('[data-field="title"]');
+      const sevSelect = selectEl || form.querySelector('[data-field="severity"]');
+      const sev = sevSelect.value;
+      const badge = header.querySelector('.severity-badge');
+      badge.className = `severity-badge severity-${sev}`;
+      badge.style.fontSize = '10px';
+      badge.innerHTML = `${getSevIcon(sev)} ${sev}`;
+      header.querySelector('.edit-form-header-title').textContent = titleInput.value || 'New comment';
+    }
+
+    function switchBodyTab(idx, tab, btnEl) {
+      const textarea = document.getElementById(`edit-body-${idx}`);
+      const preview = document.getElementById(`edit-preview-${idx}`);
+      const tabs = btnEl.parentElement.querySelectorAll('.edit-tab');
+      tabs.forEach(t => t.classList.remove('active'));
+      btnEl.classList.add('active');
+      if (tab === 'preview') {
+        preview.innerHTML = textarea.value || '';
+        textarea.style.display = 'none';
+        preview.style.display = 'block';
+      } else {
+        textarea.style.display = 'block';
+        preview.style.display = 'none';
+        textarea.focus();
+      }
+    }
+
+    // ===== Interactions =====
+    function toggleFilter(type, value) { activeFilters[type] = activeFilters[type] === value ? null : value; render(); }
+    function expandAll() { document.querySelectorAll('.comment-group-header.collapsed').forEach(h => h.classList.remove('collapsed')); }
+    function collapseAll() { document.querySelectorAll('.comment-group-header:not(.collapsed)').forEach(h => h.classList.add('collapsed')); }
+
+    // Close modals on overlay click
+    const modals = {
+      categoryModal: closeCategoryModal,
+      deleteCatModal: closeDeleteCatModal,
+      commentModal: closeCommentModal,
+      deleteFileModal: closeDeleteFileModal
+    };
+    Object.entries(modals).forEach(([id, closeFn]) => {
+      document.getElementById(id).addEventListener('click', e => { if (e.target === e.currentTarget) closeFn(); });
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        for (const [id, closeFn] of Object.entries(modals)) {
+          if (document.getElementById(id).classList.contains('open')) { closeFn(); return; }
+        }
+        if (editingIdx !== null) cancelEdit();
+      }
+    });
+
+    // ===== Bootstrap =====
+    async function loadData() {
+      showEmptyState('loading');
+
+      // Check if local server is running (enables save-to-disk)
+      await checkServer();
+
+      try {
+        const r = await fetch('./config.json');
+        if (r.ok) {
+          config = await r.json();
+          if (config.categories) Object.entries(config.categories).forEach(([k,v]) => { categoryLabels[k] = v.label || k; categoryColors[k] = v.color || '#8b949e'; });
+          if (config.severities) Object.entries(config.severities).forEach(([k,v]) => { severityIcons[k] = v.icon || severityIcons[k]; });
+        }
+      } catch (_) {}
+
+      renderHeader();
+      injectCategoryCSS();
+
+      let findingsLoaded = false;
+      try {
+        const r = await fetch('./findings.json');
+        if (r.ok) { const d = await r.json(); if (Array.isArray(d)) { reviewData = d; findingsLoaded = true; } }
+      } catch (e) { if (location.protocol === 'file:') { showEmptyState('fetch-error'); return; } }
+
+      document.getElementById('mainControls').style.display = 'flex';
+      if (!findingsLoaded) showEmptyState('no-analysis');
+      else if (reviewData.length === 0) showEmptyState('all-clear');
+      else render();
+    }
+
+    document.getElementById('searchInput').addEventListener('input', render);
+    loadData();
+  </script>
+</body>
+</html>

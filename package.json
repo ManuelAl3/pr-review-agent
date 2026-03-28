@@ -1,0 +1,32 @@
+{
+  "name": "pr-review-agent",
+  "version": "1.0.0",
+  "description": "AI-powered PR review agent for Claude Code, OpenCode, and other AI coding assistants. Analyzes pull requests against project-specific architectural patterns with an interactive preview UI.",
+  "bin": {
+    "pr-review-agent": "bin/install.js"
+  },
+  "files": [
+    "bin",
+    "commands",
+    "agents",
+    "template"
+  ],
+  "keywords": [
+    "claude-code",
+    "code-review",
+    "pull-request",
+    "ai-agent",
+    "opencode",
+    "pr-review",
+    "linter"
+  ],
+  "author": "TheRocketCodeMX",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TheRocketCodeMX/pr-review-agent"
+  }
+}
