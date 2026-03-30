@@ -693,7 +693,10 @@
         category: document.getElementById('comCategory').value,
         title,
         body: document.getElementById('comBody').value,
-        snippet: document.getElementById('comSnippet').value
+        snippet: document.getElementById('comSnippet').value,
+        status: 'pending',
+        commitHash: null,
+        commentId: null
       });
       closeCommentModal();
       activeFilters = { severity: null, category: null, file: null };
@@ -723,13 +726,16 @@
     async function saveEdit(idx) {
       const form = document.getElementById(`edit-form-${idx}`);
       if (!form) return;
-      reviewData[idx].file = form.querySelector('[data-field="file"]').value.trim();
-      reviewData[idx].title = form.querySelector('[data-field="title"]').value.trim();
-      reviewData[idx].body = form.querySelector('[data-field="body"]').value;
-      reviewData[idx].severity = form.querySelector('[data-field="severity"]').value;
-      reviewData[idx].category = form.querySelector('[data-field="category"]').value;
-      reviewData[idx].line = parseInt(form.querySelector('[data-field="line"]').value) || 0;
-      reviewData[idx].snippet = form.querySelector('[data-field="snippet"]').value;
+      reviewData[idx] = {
+        ...reviewData[idx],
+        file: form.querySelector('[data-field="file"]').value.trim(),
+        title: form.querySelector('[data-field="title"]').value.trim(),
+        body: form.querySelector('[data-field="body"]').value,
+        severity: form.querySelector('[data-field="severity"]').value,
+        category: form.querySelector('[data-field="category"]').value,
+        line: parseInt(form.querySelector('[data-field="line"]').value) || 0,
+        snippet: form.querySelector('[data-field="snippet"]').value,
+      };
       editingIdx = null;
       render();
       await persistToDisk();
@@ -997,7 +1003,18 @@
       let findingsLoaded = false;
       try {
         const r = await fetch('./findings.json');
-        if (r.ok) { const d = await r.json(); if (Array.isArray(d)) { reviewData = d; findingsLoaded = true; } }
+        if (r.ok) {
+          const d = await r.json();
+          if (Array.isArray(d)) {
+            reviewData = d.map(f => ({
+              status: 'pending',
+              commitHash: null,
+              commentId: null,
+              ...f
+            }));
+            findingsLoaded = true;
+          }
+        }
       } catch (e) { if (location.protocol === 'file:') { showEmptyState('fetch-error'); return; } }
 
       document.getElementById('mainControls').style.display = 'flex';
