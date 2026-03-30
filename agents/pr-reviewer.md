@@ -130,7 +130,7 @@ gh api repos/{OWNER/REPO}/pulls/{PR_NUMBER}/files --paginate --jq '.[] | select(
 ## Step 3: Generate Review Output
 
 ### 3a. Write findings JSON
-Write the findings array to `$PR_REVIEW_DIR/findings.json`. Each finding MUST have all 7 fields: `file`, `line`, `severity`, `category`, `title`, `body`, `snippet`. Never omit `snippet` — every finding needs a code reference showing the issue or the fix.
+Write the findings array to `$PR_REVIEW_DIR/findings.json`. Each finding MUST have all 10 fields: `file`, `line`, `severity`, `category`, `title`, `body`, `snippet`, `status`, `commitHash`, `commentId`. Never omit `snippet` — every finding needs a code reference showing the issue or the fix. For all new findings, set `status: "pending"`, `commitHash: null`, `commentId: null`.
 
 ### 3b. Update config.json
 Write/update `$PR_REVIEW_DIR/config.json` with PR metadata and category definitions.
