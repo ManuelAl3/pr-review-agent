@@ -48,6 +48,8 @@ Parse the findings array. Apply filters if provided:
 - `--severity X` → process only findings with that severity
 - `--category X` → process only findings with that category
 
+When reading findings, handle backward compatibility: if a finding lacks `status`, treat it as `"pending"`. If it lacks `commitHash`, treat it as `null`. If it lacks `commentId`, treat it as `null`. Use nullish coalescing: `finding.status ?? 'pending'`.
+
 Print a summary of what will be fixed:
 ```
 Findings to fix: X of Y total
@@ -147,6 +149,7 @@ If any findings were skipped, explain what manual action is needed.
 - **NEVER commit changes** — the user decides when to commit
 - If a file has multiple findings, fix them in reverse line order (bottom-up) to preserve line numbers
 - If two findings conflict, skip the second and report the conflict
+- **NEVER assume findings have `status`, `commitHash`, or `commentId` fields** — old findings files may lack them. Always apply defaults: `status ?? 'pending'`, `commitHash ?? null`, `commentId ?? null`
 </constraints>
 
 <success_criteria>
