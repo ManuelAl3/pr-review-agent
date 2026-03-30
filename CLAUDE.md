@@ -33,7 +33,7 @@ All `.md`, `.js`, `.json` files use `__CONFIG_DIR__` as a placeholder. During in
 
 ## Findings Schema
 
-Every finding in `findings.json` has exactly 7 required fields:
+Every finding in `findings.json` has exactly 10 required fields:
 
 ```json
 {
@@ -43,11 +43,14 @@ Every finding in `findings.json` has exactly 7 required fields:
   "category": "category-key",
   "title": "Short title (<80 chars)",
   "body": "Detailed explanation (supports HTML)",
-  "snippet": "current code → expected code"
+  "snippet": "current code → expected code",
+  "status": "pending|resolved (default: pending)",
+  "commitHash": "abc1234 or null (default: null)",
+  "commentId": "12345 or null (default: null)"
 }
 ```
 
-The `snippet` field uses `→` to separate current from expected code. The HTML UI renders, edits, and persists all 7 fields.
+The `snippet` field uses `→` to separate current from expected code. The `status`, `commitHash`, and `commentId` fields track fix resolution state. When loading existing findings files that lack these fields, consumers apply silent defaults: `status` → `"pending"`, `commitHash` → `null`, `commentId` → `null`. The HTML UI renders, edits, and persists all 10 fields.
 
 ## Development
 
@@ -275,7 +278,7 @@ An npm-distributed AI agent toolkit that gives developers a complete PR review c
 ## Key Abstractions
 - Purpose: Atomic unit of a code review issue with all context needed for fixing
 - Files: Referenced throughout agents (pr-reviewer generates, pr-fixer consumes, UI displays)
-- Pattern: 7-field JSON structure (file, line, severity, category, title, body, snippet)
+- Pattern: 10-field JSON structure (file, line, severity, category, title, body, snippet, status, commitHash, commentId)
 - Example: `{ file: "src/api/users.ts", line: 42, severity: "critical", category: "security", title: "Missing auth guard", body: "...", snippet: "export function getUser() → export async function getUser(@UseGuards(AuthGuard))" }`
 - Purpose: Describe agent role, tools, and entry point to AI assistant's agent runner
 - Files: `agents/pr-reviewer.md`, `agents/pr-fixer.md`
@@ -323,7 +326,7 @@ An npm-distributed AI agent toolkit that gives developers a complete PR review c
 - Review agent: prints summary table with category/severity counts
 - Fix agent: prints `✓ Fixed: {title} ({file})` or `⊘ Skipped: {reason}` per finding
 - UI server: logs request paths and errors to stdout (Node.js default)
-- Findings objects validated against 7-field schema by agents and UI
+- Findings objects validated against 10-field schema by agents and UI
 - REVIEW-PLAN.md structure loosely validated (checklist parsing)
 - JSON files validated with `JSON.parse()` before write
 - PR URL parsing uses regex or gh CLI metadata

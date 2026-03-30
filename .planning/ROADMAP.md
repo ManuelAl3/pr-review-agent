@@ -29,7 +29,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. A new findings.json file includes `status` ("pending"), `commitHash` (null), and `commentId` (null) for every finding
   2. An existing findings.json from v1.1 (without the new fields) loads without errors and behaves as if all findings are pending with null hashes/IDs
   3. The serve.js PUT endpoint accepts and persists all three new fields without dropping them
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Update schema documentation and agent prompts to 10-field contract
+- [ ] 01-02-PLAN.md — Add backward-compatible schema handling to HTML UI
 
 ### Phase 2: UI Resolution Display
 **Goal**: Users can see fix resolution state — badges, commit links, and filtering — directly in the HTML UI
@@ -95,7 +99,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Schema Foundation | 0/? | Not started | - |
+| 1. Schema Foundation | 0/2 | Planning | - |
 | 2. UI Resolution Display | 0/? | Not started | - |
 | 3. Git Context | 0/? | Not started | - |
 | 4. Fix Engine | 0/? | Not started | - |
