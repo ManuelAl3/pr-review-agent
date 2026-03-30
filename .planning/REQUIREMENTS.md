@@ -41,6 +41,7 @@ Requirements for the fix/resolution milestone. Each maps to roadmap phases.
 - [ ] **UI-02**: Resolved findings are visually dimmed (reduced opacity + strikethrough on title)
 - [ ] **UI-03**: User can filter findings to show pending only, resolved only, or all
 - [ ] **UI-04**: Resolved findings display clickable commit hash linking to the commit on GitHub
+- [ ] **UI-05**: Review agent auto-starts preview server and prints URL after generating findings
 
 ## v2 Requirements
 
@@ -74,35 +75,36 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCHEMA-01 | — | Pending |
-| SCHEMA-02 | — | Pending |
-| SCHEMA-03 | — | Pending |
-| SCHEMA-04 | — | Pending |
-| FIX-01 | — | Pending |
-| FIX-02 | — | Pending |
-| FIX-03 | — | Pending |
-| FIX-04 | — | Pending |
-| FIX-05 | — | Pending |
-| FIX-06 | — | Pending |
-| FIX-07 | — | Pending |
-| FIX-08 | — | Pending |
-| FIX-09 | — | Pending |
-| FIX-10 | — | Pending |
-| GH-01 | — | Pending |
-| GH-02 | — | Pending |
-| GH-03 | — | Pending |
-| GH-04 | — | Pending |
-| GH-05 | — | Pending |
-| UI-01 | — | Pending |
-| UI-02 | — | Pending |
-| UI-03 | — | Pending |
-| UI-04 | — | Pending |
+| SCHEMA-01 | Phase 1 | Pending |
+| SCHEMA-02 | Phase 1 | Pending |
+| SCHEMA-03 | Phase 1 | Pending |
+| SCHEMA-04 | Phase 1 | Pending |
+| UI-01 | Phase 2 | Pending |
+| UI-02 | Phase 2 | Pending |
+| UI-03 | Phase 2 | Pending |
+| UI-04 | Phase 2 | Pending |
+| UI-05 | Phase 2 | Pending |
+| FIX-01 | Phase 3 | Pending |
+| FIX-02 | Phase 3 | Pending |
+| FIX-07 | Phase 3 | Pending |
+| FIX-03 | Phase 4 | Pending |
+| FIX-04 | Phase 4 | Pending |
+| FIX-05 | Phase 4 | Pending |
+| FIX-08 | Phase 4 | Pending |
+| FIX-09 | Phase 4 | Pending |
+| FIX-10 | Phase 4 | Pending |
+| FIX-06 | Phase 5 | Pending |
+| GH-04 | Phase 5 | Pending |
+| GH-05 | Phase 5 | Pending |
+| GH-01 | Phase 6 | Pending |
+| GH-02 | Phase 6 | Pending |
+| GH-03 | Phase 6 | Pending |
 
 **Coverage:**
-- v1 requirements: 23 total
-- Mapped to phases: 0
-- Unmapped: 23 ⚠️
+- v1 requirements: 24 total
+- Mapped to phases: 24
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-30*
-*Last updated: 2026-03-30 after initial definition*
+*Last updated: 2026-03-30 after roadmap creation*
