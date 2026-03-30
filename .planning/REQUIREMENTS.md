@@ -9,10 +9,10 @@ Requirements for the fix/resolution milestone. Each maps to roadmap phases.
 
 ### Schema
 
-- [ ] **SCHEMA-01**: Findings JSON gains `status` field ("pending" | "resolved") defaulting to "pending"
-- [ ] **SCHEMA-02**: Findings JSON gains `commitHash` field (string | null) storing the fix commit SHA
-- [ ] **SCHEMA-03**: Findings JSON gains `commentId` field (number | null) storing the GitHub inline comment ID
-- [ ] **SCHEMA-04**: Existing findings.json files without new fields are handled gracefully (missing = pending/null)
+- [x] **SCHEMA-01**: Findings JSON gains `status` field ("pending" | "resolved") defaulting to "pending"
+- [x] **SCHEMA-02**: Findings JSON gains `commitHash` field (string | null) storing the fix commit SHA
+- [x] **SCHEMA-03**: Findings JSON gains `commentId` field (number | null) storing the GitHub inline comment ID
+- [x] **SCHEMA-04**: Existing findings.json files without new fields are handled gracefully (missing = pending/null)
 
 ### Fix Agent
 
@@ -75,10 +75,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCHEMA-01 | Phase 1 | Pending |
-| SCHEMA-02 | Phase 1 | Pending |
-| SCHEMA-03 | Phase 1 | Pending |
-| SCHEMA-04 | Phase 1 | Pending |
+| SCHEMA-01 | Phase 1 | Complete |
+| SCHEMA-02 | Phase 1 | Complete |
+| SCHEMA-03 | Phase 1 | Complete |
+| SCHEMA-04 | Phase 1 | Complete |
 | UI-01 | Phase 2 | Pending |
 | UI-02 | Phase 2 | Pending |
 | UI-03 | Phase 2 | Pending |
