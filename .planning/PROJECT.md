@@ -15,7 +15,7 @@ The developer gets a complete review-to-resolution cycle without leaving their A
 - ✓ Installer copies agents, commands, and template into AI assistant config dir — existing (v1.0)
 - ✓ `/pr-review:setup` generates project-specific REVIEW-PLAN.md — existing (v1.0)
 - ✓ `/pr-review:review` analyzes PR diffs against REVIEW-PLAN.md and generates structured findings — existing (v1.0)
-- ✓ Findings have 7-field schema (file, line, severity, category, title, body, snippet) — existing (v1.1)
+- ✓ Findings have 10-field schema (file, line, severity, category, title, body, snippet, status, commitHash, commentId) — validated in Phase 01
 - ✓ Interactive HTML UI for viewing, filtering, editing, and persisting findings — existing (v1.0)
 - ✓ Zero-dependency local server with PUT APIs for persistence — existing (v1.0)
 - ✓ Placeholder system (`__CONFIG_DIR__`) for multi-runtime support — existing (v1.0)
@@ -31,7 +31,7 @@ The developer gets a complete review-to-resolution cycle without leaving their A
 - [ ] Review agent posts findings as GitHub inline code review comments (on specific lines)
 - [ ] HTML UI shows fix status: green "Resolved" badge + visual dimming for fixed findings
 - [ ] HTML UI supports filtering by fix status (pending only / all)
-- [ ] Findings JSON gains `status` field ("pending" | "resolved") with optional `commitHash`
+- ✓ Findings JSON has `status` field ("pending" | "resolved") with optional `commitHash` and `commentId` — validated in Phase 01
 - [ ] Filter flags for fix command: `--all`, `--only N`, `--severity X`, `--category X`
 
 ### Out of Scope
@@ -68,7 +68,7 @@ The developer gets a complete review-to-resolution cycle without leaving their A
 | Reply per comment with commit link | GitHub best practice — each thread shows resolution status | — Pending |
 | Badge + strikethrough for resolved UI | Natural UX pattern (like GitHub Issues) — dimmed but visible, filterable | — Pending |
 | Auto-checkout PR branch | Zero friction for developer — agent handles git state automatically | — Pending |
-| Findings gain `status` + `commitHash` fields | Enables UI to track resolution and link to commits | — Pending |
+| Findings gain `status` + `commitHash` + `commentId` fields | Enables UI to track resolution and link to commits | ✓ Phase 01 |
 
 ## Evolution
 
@@ -88,4 +88,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-30 after initialization*
+*Last updated: 2026-03-30 after Phase 01 (Schema Foundation) completion*
