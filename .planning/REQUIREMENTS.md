@@ -16,16 +16,16 @@ Requirements for the fix/resolution milestone. Each maps to roadmap phases.
 
 ### Fix Agent
 
-- [ ] **FIX-01**: Fix agent auto-checkouts PR branch via `gh pr checkout` before applying any fixes
-- [ ] **FIX-02**: Fix agent detects dirty working tree and warns user before switching branches
+- [x] **FIX-01**: Fix agent auto-checkouts PR branch via `gh pr checkout` before applying any fixes
+- [x] **FIX-02**: Fix agent detects dirty working tree and warns user before switching branches
 - [ ] **FIX-03**: Fix agent creates one commit per finding with message format `fix(review): [title]`
-- [ ] **FIX-04**: Fix agent locates code by searching snippet content, not relying on line numbers
-- [ ] **FIX-05**: Fix agent finds reference implementations in codebase before applying pattern-based fixes
+- [x] **FIX-04**: Fix agent locates code by searching snippet content, not relying on line numbers
+- [x] **FIX-05**: Fix agent finds reference implementations in codebase before applying pattern-based fixes
 - [ ] **FIX-06**: Fix agent pushes all commits to PR branch after all fixes are applied (single push)
-- [ ] **FIX-07**: Fix agent detects fork PRs (`isCrossRepository`) and skips push with clear warning
+- [x] **FIX-07**: Fix agent detects fork PRs (`isCrossRepository`) and skips push with clear warning
 - [ ] **FIX-08**: Fix agent updates `status` to "resolved" and stores `commitHash` in findings.json after each fix
-- [ ] **FIX-09**: Fix agent supports filter flags: `--all`, `--only N`, `--severity X`, `--category X`
-- [ ] **FIX-10**: Fix agent skips findings already marked as "resolved" (idempotent re-runs)
+- [x] **FIX-09**: Fix agent supports filter flags: `--all`, `--only N`, `--severity X`, `--category X`
+- [x] **FIX-10**: Fix agent skips findings already marked as "resolved" (idempotent re-runs)
 
 ### GitHub Integration
 
@@ -84,15 +84,15 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UI-03 | Phase 2 | Complete |
 | UI-04 | Phase 2 | Complete |
 | UI-05 | Phase 2 | Complete |
-| FIX-01 | Phase 3 | Pending |
-| FIX-02 | Phase 3 | Pending |
-| FIX-07 | Phase 3 | Pending |
+| FIX-01 | Phase 3 | Complete |
+| FIX-02 | Phase 3 | Complete |
+| FIX-07 | Phase 3 | Complete |
 | FIX-03 | Phase 4 | Pending |
-| FIX-04 | Phase 4 | Pending |
-| FIX-05 | Phase 4 | Pending |
+| FIX-04 | Phase 4 | Complete |
+| FIX-05 | Phase 4 | Complete |
 | FIX-08 | Phase 4 | Pending |
-| FIX-09 | Phase 4 | Pending |
-| FIX-10 | Phase 4 | Pending |
+| FIX-09 | Phase 4 | Complete |
+| FIX-10 | Phase 4 | Complete |
 | FIX-06 | Phase 5 | Pending |
 | GH-04 | Phase 5 | Pending |
 | GH-05 | Phase 5 | Pending |

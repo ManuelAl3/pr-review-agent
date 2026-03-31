@@ -75,10 +75,10 @@ Plans:
   3. Re-running the fix command skips findings already marked `status: "resolved"` without creating duplicate commits
   4. Running `fix --severity critical` applies only critical-severity findings; `fix --only 2` applies only finding number 2; filters can be combined
   5. When a finding's snippet text is not found in the target file, the fix is skipped with a "code has changed since review" message
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
-- [ ] 04-01-PLAN.md — Add filter AND logic, idempotency filter, snippet matching, and reference search to Steps 1-2
+- [x] 04-01-PLAN.md — Add filter AND logic, idempotency filter, snippet matching, and reference search to Steps 1-2
 - [ ] 04-02-PLAN.md — Add per-finding commit loop, SHA capture, findings.json persistence, and summary to Steps 3-4
 
 ### Phase 5: GitHub Bridge
@@ -113,6 +113,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Schema Foundation | 2/2 | Complete   | 2026-03-30 |
 | 2. UI Resolution Display | 2/2 | Complete   | 2026-03-31 |
 | 3. Git Context | 1/1 | Complete   | 2026-03-31 |
-| 4. Fix Engine | 0/2 | In progress | - |
+| 4. Fix Engine | 1/2 | In Progress|  |
 | 5. GitHub Bridge | 0/? | Not started | - |
 | 6. Review Agent Inline Comments | 0/? | Not started | - |
