@@ -227,9 +227,55 @@ For each finding, apply the fix using the appropriate tool:
 2. Add missing decorators, validators, swagger annotations
 3. Follow the exact same ordering and style as reference files
 
-After each fix:
-- Print: `✓ Fixed: {title} ({file}:{line})`
-- If skipped: `⊘ Skipped: {title} — {reason}`
+### After each successful fix: commit and persist
+
+After each finding is successfully fixed with Edit/Write:
+
+**a. Git commit (per D-01, D-02, D-11):**
+
+If `$IS_FORK` is NOT `"true"` (per D-16):
+```bash
+# Stage ONLY the fixed source file — NEVER git add -A or git add . (per D-01)
+git add "[finding.file]"
+
+# Commit with exact format (per D-02)
+git commit -m "fix(review): [finding.title]"
+
+# Capture full 40-char SHA after confirmed successful commit (per D-11)
+COMMIT_SHA=$(git rev-parse HEAD)
+```
+
+If `$IS_FORK` is `"true"` (per D-16):
+- Do NOT run git add, git commit, or git rev-parse
+- Set `COMMIT_SHA` to empty/null — no commit hash to store
+
+One commit per finding, even when multiple findings target the same file (per D-11). The bottom-up ordering from Step 1 ensures each edit is applied before the next, making each file state a distinct commit.
+
+**b. Update findings.json immediately (per FIX-08):**
+
+After the commit (or after the edit for fork PRs), mutate the in-memory findings array:
+- `finding.status = "resolved"`
+- `finding.commitHash = COMMIT_SHA` (the full 40-char SHA, or `null` for fork PRs per D-16)
+
+Then overwrite findings.json using the Write tool:
+- Path: `$PR_REVIEW_DIR/findings.json`
+- Content: `JSON.stringify(findingsArray, null, 2)`
+
+Write after EACH fix, not batched at end. This ensures idempotency survives interrupted runs — a crash after fix 5 of 10 means re-running only attempts fixes 6-10 (per D-08).
+
+**c. Per-finding output:**
+
+Update the per-finding print lines:
+- Fixed (non-fork): `✓ Fixed: [title] ([file]) → [COMMIT_SHA first 7 chars]`
+- Fixed (fork): `✓ Fixed: [title] ([file]) → local only`
+- Skipped: `⊘ Skipped: [title] — [reason]` (per D-05, D-06)
+
+**d. Failure handling (per D-06):**
+
+If git commit fails (non-zero exit code), or if the Edit/Write tool reports an error:
+- Do NOT update findings.json for this finding (status stays "pending")
+- Log: `⊘ Skipped: [title] — [reason: edit conflict / commit failed / etc.]`
+- Continue to the next finding. Never halt the run.
 </step>
 
 <step name="report">
@@ -262,7 +308,7 @@ If any findings were skipped, explain what manual action is needed.
 - **NEVER modify files not mentioned in findings** — no drive-by fixes
 - **NEVER change test expectations** to make tests pass — fix the source code
 - **NEVER introduce new dependencies** unless the finding explicitly requires it
-- **NEVER commit changes** — the user decides when to commit. When `$IS_FORK` is `true`, do not create any commits at all — only apply edits to the working tree
+- **One commit per finding** when not a fork PR (`$IS_FORK !== "true"`). Each commit contains ONLY the fixed source file — NEVER include findings.json in any commit (per D-01). When `$IS_FORK` is `"true"`, apply edits to the working tree only — no git add, no git commit.
 - **NEVER switch branches on a dirty working tree** — if `git status --porcelain` shows tracked changes (lines not starting with `??`), abort immediately with the dirty tree error
 - If a file has multiple findings, fix them in reverse line order (bottom-up) to preserve line numbers
 - If two findings conflict, skip the second and report the conflict
