@@ -61,6 +61,8 @@ tell the user to run `/pr-review:review <pr-url>` first.
    b. Find a reference implementation in the codebase (for pattern-based fixes)
    c. Apply the fix using Edit/Write tools
    d. Report result (fixed or skipped with reason)
+   e. If not fork: stage fixed file, commit with `fix(review): [title]`, capture SHA
+   f. Update findings.json: set status to "resolved", store commitHash (null for forks)
 7. Print summary with fixed/skipped counts
 </process>
 
@@ -73,4 +75,8 @@ tell the user to run `/pr-review:review <pr-url>` first.
 - [ ] Fixes follow project conventions (verified against reference implementations)
 - [ ] Summary report displayed
 - [ ] No unrelated code modified
+- [ ] Each fix produces one commit with format `fix(review): [title]` (non-fork only)
+- [ ] findings.json reflects resolved status and commitHash after each fix
+- [ ] Re-runs skip already-resolved findings without duplicate commits
+- [ ] Skipped findings reported with reasons in summary
 </success_criteria>

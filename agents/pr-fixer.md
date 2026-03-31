@@ -281,16 +281,17 @@ If git commit fails (non-zero exit code), or if the Edit/Write tool reports an e
 <step name="report">
 ## Step 4: Summary Report
 
-After all findings are processed, print a summary:
+After all findings in `pendingFindings` are processed, print a summary:
 
 ```
 ═══ Fix Summary ═══
 Fixed:   X findings
 Skipped: Y findings
-Total:   Z findings
+Total:   Z findings processed
 
 Fixed:
-  ✓ {title} ({file})
+  ✓ {title} ({file}) → {commitHash first 7 chars}
+  ✓ {title} ({file}) → local only  (fork PRs, per D-17)
   ✓ ...
 
 Skipped:
@@ -298,7 +299,10 @@ Skipped:
   ⊘ ...
 ```
 
-If any findings were skipped, explain what manual action is needed.
+Per D-07: The summary shows ALL skipped findings with their reasons. Developer can re-run with `--only N` for specific retries.
+
+If no findings were skipped, omit the Skipped section entirely.
+If all findings were skipped, the Fixed section shows "(none)".
 </step>
 
 </execution_flow>
@@ -321,4 +325,8 @@ If any findings were skipped, explain what manual action is needed.
 - [ ] Project patterns followed (checked against reference implementations)
 - [ ] Summary report printed with fixed/skipped counts
 - [ ] No unrelated code modified
+- [ ] Each fixed finding has exactly one git commit with message `fix(review): [title]`
+- [ ] findings.json updated after each fix with status "resolved" and commitHash
+- [ ] Re-running skips already-resolved findings (idempotent)
+- [ ] Fork PRs: edits applied, findings.json updated, but no commits created
 </success_criteria>
