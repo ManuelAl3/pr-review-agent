@@ -40,6 +40,7 @@ Filters can be combined: `--severity critical --category security`
 **Prerequisites:**
 - A previous `/pr-review:review` must have been run (findings.json must exist)
 - `./REVIEW-PLAN.md` exists (for understanding architectural patterns)
+- A clean working tree (no uncommitted tracked changes). Untracked files are fine.
 
 **First:** Detect the pr-review directory and load `findings.json`. If it doesn't exist,
 tell the user to run `/pr-review:review <pr-url>` first.
@@ -47,8 +48,12 @@ tell the user to run `/pr-review:review <pr-url>` first.
 
 <process>
 1. Detect pr-review directory (local `__CONFIG_DIR__/pr-review/` or global `$HOME/__CONFIG_DIR__/pr-review/`)
-2. Read `$PR_REVIEW_DIR/findings.json` — if missing, stop and ask user to run review first
-3. Read `$PR_REVIEW_DIR/config.json` for PR context (optional, for reference)
+2. **Pre-flight safety gate:**
+   a. Read `$PR_REVIEW_DIR/config.json` for PR metadata (number, head branch) — if missing, stop with error
+   b. Check for dirty working tree (`git status --porcelain`, ignoring untracked files) — if dirty, stop with error
+   c. Check current branch vs `config.json` `pr.head` — if different, run `gh pr checkout`; if same, skip silently
+   d. Detect fork PR via `gh pr view --json isCrossRepository` — if fork, warn user and set flag to skip commits/push/replies
+3. Read `$PR_REVIEW_DIR/findings.json` — if missing, stop and ask user to run review first
 4. Parse filter flags from arguments, select target findings
 5. Load project context (CLAUDE.md, REVIEW-PLAN.md, skills)
 6. For each targeted finding:
@@ -60,6 +65,8 @@ tell the user to run `/pr-review:review <pr-url>` first.
 </process>
 
 <success_criteria>
+- [ ] Pre-flight gate passed (clean tree, correct branch, fork status known)
+- [ ] If fork PR: no commits created, warning displayed
 - [ ] findings.json loaded and parsed
 - [ ] Filters applied correctly
 - [ ] Each targeted finding attempted
