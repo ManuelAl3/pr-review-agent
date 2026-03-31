@@ -21,7 +21,7 @@ Requirements for the fix/resolution milestone. Each maps to roadmap phases.
 - [x] **FIX-03**: Fix agent creates one commit per finding with message format `fix(review): [title]`
 - [x] **FIX-04**: Fix agent locates code by searching snippet content, not relying on line numbers
 - [x] **FIX-05**: Fix agent finds reference implementations in codebase before applying pattern-based fixes
-- [ ] **FIX-06**: Fix agent pushes all commits to PR branch after all fixes are applied (single push)
+- [x] **FIX-06**: Fix agent pushes all commits to PR branch after all fixes are applied (single push)
 - [x] **FIX-07**: Fix agent detects fork PRs (`isCrossRepository`) and skips push with clear warning
 - [x] **FIX-08**: Fix agent updates `status` to "resolved" and stores `commitHash` in findings.json after each fix
 - [x] **FIX-09**: Fix agent supports filter flags: `--all`, `--only N`, `--severity X`, `--category X`
@@ -93,7 +93,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FIX-08 | Phase 4 | Complete |
 | FIX-09 | Phase 4 | Complete |
 | FIX-10 | Phase 4 | Complete |
-| FIX-06 | Phase 5 | Pending |
+| FIX-06 | Phase 5 | Complete |
 | GH-04 | Phase 5 | Pending |
 | GH-05 | Phase 5 | Pending |
 | GH-01 | Phase 6 | Pending |

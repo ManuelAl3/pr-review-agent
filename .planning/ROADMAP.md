@@ -90,10 +90,10 @@ Plans:
   2. Each resolved finding whose `commentId` is set receives a reply "Fixed in `<commit-hash>`" visible in the GitHub inline comment thread
   3. When push fails (e.g., no push access), commits remain local and a clear error is shown; the failure does not prevent comment replies from being attempted
   4. When a fix agent reply would go to a line outside the diff (422 error), it falls back to posting a general PR comment instead
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
-- [ ] 05-01-PLAN.md — Add Step 5 push logic to fix agent (single git push, fork guard, error resilience)
+- [x] 05-01-PLAN.md — Add Step 5 push logic to fix agent (single git push, fork guard, error resilience)
 - [ ] 05-02-PLAN.md — Add Step 6 reply to inline comment threads with 422 batched fallback
 
 ### Phase 6: Review Agent Inline Comments
@@ -118,5 +118,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. UI Resolution Display | 2/2 | Complete   | 2026-03-31 |
 | 3. Git Context | 1/1 | Complete   | 2026-03-31 |
 | 4. Fix Engine | 2/2 | Complete   | 2026-03-31 |
-| 5. GitHub Bridge | 0/2 | Planning   | - |
+| 5. GitHub Bridge | 1/2 | In Progress|  |
 | 6. Review Agent Inline Comments | 0/? | Not started | - |
