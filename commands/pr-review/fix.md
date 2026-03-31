@@ -68,6 +68,13 @@ tell the user to run `/pr-review:review <pr-url>` first.
    a. If fork PR ($IS_FORK is "true"): skip push, print "Push: skipped (fork PR)"
    b. If no fixes were applied: skip push silently
    c. Run `git push` — on failure, print error with hint to push manually; continue to reply step
+9. **Reply to inline comment threads (non-fork only):**
+   a. Filter resolved findings with non-null commentId as reply targets
+   b. Print reply target count: "Reply targets: N of M resolved findings have commentId"
+   c. If zero targets: print "Replies: No inline comments to reply to", skip rest
+   d. For each target: POST reply via `gh api repos/{repo}/pulls/{number}/comments/{commentId}/replies` with body "Fixed in [`{sha}`]({url})\n\n{title} (`{file}`)"
+   e. On 422: collect for batched fallback. On other error: skip and report. No retries.
+   f. After all replies: if any 422s, post ONE `gh pr comment` with markdown table of failed inline replies
 </process>
 
 <success_criteria>
@@ -84,4 +91,6 @@ tell the user to run `/pr-review:review <pr-url>` first.
 - [ ] Re-runs skip already-resolved findings without duplicate commits
 - [ ] Skipped findings reported with reasons in summary
 - [ ] Fix commits pushed to PR branch in a single git push (skipped for forks)
+- [ ] Each resolved finding with commentId gets a reply on its inline comment thread
+- [ ] 422 errors fall back to a single batched general PR comment
 </success_criteria>
