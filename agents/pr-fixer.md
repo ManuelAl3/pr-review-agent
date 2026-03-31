@@ -339,6 +339,106 @@ PUSH_EXIT=$?
 
 </step>
 
+<step name="reply_comments">
+## Step 6: Reply to Inline Comment Threads
+
+Reply to GitHub inline comment threads for each resolved finding that has a `commentId`, linking the fixing commit (per GH-04).
+
+### Guards
+
+1. **Fork guard (per D-16):** If `$IS_FORK` is `"true"`:
+   ```
+   Replies: skipped (fork PR)
+   ```
+   Skip the entire step.
+
+2. **No-fixes guard:** If zero findings were fixed in Step 3, skip the entire step silently.
+
+### Identify reply targets (per D-12)
+
+Filter the in-memory findings array for findings where BOTH conditions are true:
+- `status` is `"resolved"`
+- `commentId` is not null
+
+Let `replyTargets` be this filtered array. Let `resolvedCount` be the total number of resolved findings.
+
+Print (per D-13):
+```
+Reply targets: {replyTargets.length} of {resolvedCount} resolved findings have commentId
+```
+
+If `replyTargets` is empty (per D-14):
+```
+Replies: No inline comments to reply to
+```
+Skip the rest of this step.
+
+### Reply loop
+
+Initialize an empty array `failed422` to collect findings whose replies got 422 errors.
+
+For each finding in `replyTargets`:
+
+1. **Build reply body (per D-01, D-02):**
+   - `SHORT_SHA` = first 7 characters of `finding.commitHash`
+   - `FULL_SHA` = `finding.commitHash` (full 40-char)
+   - `REPO` = `pr.repo` from config.json (e.g., `owner/repo`)
+   - `COMMIT_URL` = `https://github.com/{REPO}/commit/{FULL_SHA}`
+
+   Reply body text:
+   ```
+   Fixed in [`{SHORT_SHA}`]({COMMIT_URL})
+
+   {finding.title} (`{finding.file}`)
+   ```
+
+2. **Post reply via gh api:**
+   ```bash
+   REPLY_OUTPUT=$(gh api \
+     "repos/{REPO}/pulls/{PR_NUMBER}/comments/{finding.commentId}/replies" \
+     --method POST \
+     -f body="{REPLY_BODY}" 2>&1)
+   REPLY_EXIT=$?
+   ```
+
+3. **Handle result:**
+   - If `$REPLY_EXIT` is 0: `✓ Reply: {finding.title}`
+   - If `$REPLY_EXIT` is non-zero:
+     - Check: `echo "$REPLY_OUTPUT" | grep -q '"status":"422"'`
+     - If 422 match (per D-05): add finding to `failed422` array. Print: `⊘ Reply 422: {finding.title} — collected for fallback`
+     - If NOT 422 (per D-10): skip this finding. Print: `⊘ Reply failed: {finding.title}`
+     - No retry on any failure (per D-11). Continue to next finding.
+
+### Batched fallback comment (per D-05, D-06, D-07)
+
+After ALL reply attempts are complete:
+
+If `failed422` is empty (per D-07): do nothing — no fallback comment.
+
+If `failed422` is non-empty (per D-06): post ONE general PR comment via `gh pr comment` with a markdown table:
+
+```bash
+gh pr comment "{PR_NUMBER}" --repo "{REPO}" --body "## Fixes applied (inline reply unavailable)
+
+| Finding | File | Commit |
+|---------|------|--------|
+| {title} | \`{file}\` | [\`{SHORT_SHA}\`]({COMMIT_URL}) |
+... (one row per failed422 finding)
+
+_Warning: Could not reply to inline threads — lines outside current diff_"
+```
+
+Print: `Fallback: posted summary comment for {failed422.length} findings`
+
+### Reply summary
+
+Print:
+```
+Replies: {successful} replied, {failed422.length} fallback, {otherFailures} failed
+```
+
+</step>
+
 </execution_flow>
 
 <constraints>
@@ -365,4 +465,7 @@ PUSH_EXIT=$?
 - [ ] Fork PRs: edits applied, findings.json updated, but no commits created
 - [ ] All fix commits pushed to PR branch in a single git push (non-fork only)
 - [ ] Push failure does not prevent comment reply step from executing
+- [ ] Each resolved finding with commentId receives a reply on its GitHub inline comment thread
+- [ ] 422 failures collected and posted as a single batched fallback PR comment
+- [ ] Fork PRs skip both push and reply steps
 </success_criteria>
