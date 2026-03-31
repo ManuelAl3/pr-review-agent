@@ -46,6 +46,7 @@
     .stat-warning .stat-value { color: var(--accent-yellow); }
     .stat-suggestion .stat-value { color: var(--accent-blue); }
     .stat-total .stat-value { color: var(--text-primary); }
+    .stat-resolved .stat-value { color: var(--accent-green); }
 
     .filter-item { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; border-radius: var(--radius); cursor: pointer; font-size: 13px; transition: background .15s; position: relative; }
     .filter-item:hover { background: var(--bg-hover); }
@@ -92,12 +93,17 @@
     .comment-card:last-child { border-radius: 0 0 var(--radius) var(--radius); }
     .comment-card:hover { background: var(--bg-hover); }
     .comment-card:hover .card-actions { opacity: 1; }
+    .comment-card.resolved { opacity: 0.6; }
+    .comment-card.resolved .comment-title { text-decoration: line-through; }
     .comment-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
     .severity-badge { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .3px; }
     .severity-critical { background: var(--badge-critical-bg); color: var(--badge-critical-text); border: 1px solid var(--badge-critical-border); }
     .severity-warning { background: var(--badge-warning-bg); color: var(--badge-warning-text); border: 1px solid var(--badge-warning-border); }
     .severity-suggestion { background: var(--badge-suggestion-bg); color: var(--badge-suggestion-text); border: 1px solid var(--badge-suggestion-border); }
+    .severity-resolved { background: rgba(63,185,80,.15); color: var(--accent-green); border: 1px solid rgba(63,185,80,.4); }
     .category-tag { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-secondary); }
+    .commit-chip { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; font-family: var(--font-mono); background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-secondary); text-decoration: none; cursor: pointer; }
+    .commit-chip:hover { border-color: var(--text-muted); color: var(--text-primary); }
     .category-tag .filter-dot { width: 6px; height: 6px; }
     .comment-title { font-size: 14px; font-weight: 600; flex: 1; }
     .comment-body { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
@@ -227,7 +233,9 @@
         <div class="stat-card stat-warning"><div class="stat-value" id="warningCount">-</div><div class="stat-label">Warning</div></div>
         <div class="stat-card stat-suggestion"><div class="stat-value" id="suggestionCount">-</div><div class="stat-label">Suggestion</div></div>
         <div class="stat-card stat-total"><div class="stat-value" id="totalCount">-</div><div class="stat-label">Total</div></div>
+        <div class="stat-card stat-resolved"><div class="stat-value" id="resolvedCount">-</div><div class="stat-label">Resolved</div></div>
       </div>
+      <div class="sidebar-section"><div class="sidebar-section-title">Status</div><div id="statusFilters"></div></div>
       <div class="sidebar-section"><div class="sidebar-section-title">Severity</div><div id="severityFilters"></div></div>
       <div class="sidebar-section"><div class="sidebar-section-title">Category <span class="sidebar-action" title="Add category" onclick="openCategoryModal()">+</span></div><div id="categoryFilters"></div></div>
       <div class="sidebar-section"><div class="sidebar-section-title">Files</div><div id="fileFilters" style="max-height:300px;overflow-y:auto"></div></div>
