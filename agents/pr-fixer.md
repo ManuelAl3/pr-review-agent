@@ -101,17 +101,39 @@ Warning: fork PR — edits applied locally only. Commits, push, and replies skip
 3. Read `./REVIEW-PLAN.md` for architectural patterns
 4. Read any project skills for implementation patterns
 
-Parse the findings array. Apply filters if provided:
-- `--all` → process every finding
-- `--only N` → process only finding at index N (1-based)
-- `--severity X` → process only findings with that severity
-- `--category X` → process only findings with that category
+Parse the findings array. Load all findings as `allFindings`.
 
-When reading findings, handle backward compatibility: if a finding lacks `status`, treat it as `"pending"`. If it lacks `commitHash`, treat it as `null`. If it lacks `commentId`, treat it as `null`. Use nullish coalescing: `finding.status ?? 'pending'`.
+**Backward compatibility:** When reading findings, apply silent defaults — old findings files may lack these fields. Use nullish coalescing: `finding.status ?? 'pending'`, `finding.commitHash ?? null`, `finding.commentId ?? null`.
+
+### Filter processing
+
+Parse filter flags from arguments:
+
+1. **--only N override (per D-14):** If `--only N` is present, select `findings[N-1]` (1-based user index to 0-based array). Ignore all other filter flags. Set `filteredFindings = [ findings[N-1] ]`. Skip to step 4.
+
+2. **Start with all findings** as candidates: `filteredFindings = allFindings`.
+
+3. **Apply AND filters (per D-13):**
+   - If `--severity X` provided: `filteredFindings = filteredFindings.filter(f => f.severity === X)`
+   - If `--category X` provided: `filteredFindings = filteredFindings.filter(f => f.category === X)`
+   - If no flags provided (or `--all`): keep all findings (per D-15).
+
+4. **Idempotency filter (per D-08, D-10):** Remove resolved findings:
+   `pendingFindings = filteredFindings.filter(f => (f.status ?? 'pending') !== 'resolved')`
+
+   Resolved exclusion is silent — no per-finding "already resolved" log line (per D-10).
+
+5. **Early exit (per D-09):** If `pendingFindings` is empty:
+   ```
+   Nothing to fix — all findings already resolved.
+   ```
+   Stop — do not proceed to Step 2.
+
+6. **Sort for bottom-up processing (per D-12):** When multiple findings target the same file, sort `pendingFindings` by `line` descending within each file group. This preserves line number accuracy for subsequent fixes in the same file.
 
 Print a summary of what will be fixed:
 ```
-Findings to fix: X of Y total
+Findings to fix: X of Y total (Z resolved, skipped)
   - N critical, N warning, N suggestion
 ```
 </step>
