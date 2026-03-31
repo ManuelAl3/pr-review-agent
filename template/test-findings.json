@@ -1,0 +1,47 @@
+[
+  {
+    "file": "src/api/users.ts",
+    "line": 42,
+    "severity": "critical",
+    "category": "security",
+    "title": "Missing authentication guard on user endpoint",
+    "body": "The <code>getUser</code> endpoint is publicly accessible without any auth middleware. Add <code>@UseGuards(AuthGuard)</code> decorator.",
+    "snippet": "export function getUser(id) { ... }\n\u2192 @UseGuards(AuthGuard)\nexport function getUser(id) { ... }",
+    "status": "resolved",
+    "commitHash": "a1b2c3d4e5f6789abcdef0123456789abcdef01",
+    "commentId": null
+  },
+  {
+    "file": "src/api/users.ts",
+    "line": 78,
+    "severity": "warning",
+    "category": "architecture",
+    "title": "Direct database query in controller layer",
+    "body": "Database queries should go through the repository layer, not directly in the controller. This violates the separation of concerns established in the codebase.",
+    "snippet": "const user = await db.query('SELECT * FROM users')\n\u2192 const user = await userRepository.findById(id)",
+    "status": "resolved",
+    "commitHash": null,
+    "commentId": null
+  },
+  {
+    "file": "src/components/Dashboard.tsx",
+    "line": 15,
+    "severity": "suggestion",
+    "category": "i18n",
+    "title": "Hardcoded string in Dashboard header",
+    "body": "The string \"Welcome back\" should use the i18n translation function <code>t('dashboard.welcome')</code> instead of a hardcoded English string.",
+    "snippet": "<h1>Welcome back</h1>\n\u2192 <h1>{t('dashboard.welcome')}</h1>",
+    "status": "pending",
+    "commitHash": null,
+    "commentId": null
+  },
+  {
+    "file": "src/utils/format.ts",
+    "line": 8,
+    "severity": "warning",
+    "category": "code-quality",
+    "title": "Unused import left in file",
+    "body": "The <code>moment</code> import is unused after the refactor to <code>date-fns</code>. Remove it to reduce bundle size.",
+    "snippet": "import moment from 'moment'\n\u2192 (remove line)"
+  }
+]

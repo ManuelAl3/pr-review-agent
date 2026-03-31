@@ -45,7 +45,11 @@ Plans:
   3. User can switch between "All", "Pending only", and "Resolved only" views using a toggle in the sidebar
   4. A finding with `status: "pending"` displays no badge and full opacity (unchanged from current behavior)
   5. After generating findings, the review agent auto-starts the preview server (if not already running) and prints the URL to the user
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Add resolution display CSS/HTML/JS to index.html (badge, dimming, chip, filter)
+- [ ] 02-02-PLAN.md — Add auto-start preview server to review agent + test fixture
 **UI hint**: yes
 
 ### Phase 3: Git Context
@@ -100,7 +104,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Schema Foundation | 2/2 | Complete   | 2026-03-30 |
-| 2. UI Resolution Display | 0/? | Not started | - |
+| 2. UI Resolution Display | 0/2 | Planning complete | - |
 | 3. Git Context | 0/? | Not started | - |
 | 4. Fix Engine | 0/? | Not started | - |
 | 5. GitHub Bridge | 0/? | Not started | - |
