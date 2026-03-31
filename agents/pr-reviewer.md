@@ -165,7 +165,303 @@ Preview: http://localhost:3847
 <step name="post_comments">
 ## Step 4: Post Comments (Optional)
 
-Only if the user requests it (`--post` flag). Consolidate findings per file to reduce noise.
+### Step 4a: Guard Check
+
+Check if `--post` flag is present in the arguments. If NOT present, print:
+```
+Skipping comment posting (no --post flag)
+```
+And skip all remaining sub-steps in Step 4.
+
+If `--post` IS present, proceed with Steps 4b through 4h.
+
+### Step 4b: Parse Diff Hunks
+
+Re-fetch the full PR files JSON (without --jq filtering) to get the raw patch data for hunk parsing:
+
+```bash
+FILES_JSON=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}/files" --paginate 2>&1)
+```
+
+Extract hunk ranges per file using `node -e`:
+
+```bash
+HUNK_RANGES=$(echo "$FILES_JSON" | node -e "
+const files = JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
+const hunks = {};
+for (const f of files) {
+  hunks[f.filename] = [];
+  if (!f.patch) continue;
+  for (const line of f.patch.split('\n')) {
+    const m = line.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@/);
+    if (m) {
+      const start = parseInt(m[1]);
+      const count = m[2] !== undefined ? parseInt(m[2]) : 1;
+      if (count > 0) hunks[f.filename].push([start, start + count - 1]);
+    }
+  }
+}
+process.stdout.write(JSON.stringify(hunks));
+")
+```
+
+This builds a map of `{ "src/file.ts": [[startLine, endLine], ...], ... }` where each range is an inclusive new-file line range present in the diff.
+
+### Step 4c: Dedup Check Against Existing Comments
+
+Re-fetch existing PR comments as raw JSON (not --jq filtered) to get the `id` field needed for dedup:
+
+```bash
+EXISTING_COMMENTS=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}/comments" --paginate 2>&1)
+```
+
+For each finding in findings.json, check if an existing comment matches:
+- `comment.path === finding.file` AND
+- `finding.title` appears as a substring in `comment.body`
+
+When a match is found, capture the existing comment's `id` as `commentId` and mark the finding as already posted. Write updated findings.json immediately after the dedup pass:
+
+```bash
+DEDUP_RESULT=$(node -e "
+const existingComments = JSON.parse('${EXISTING_COMMENTS}'.replace(/'/g, \"'\"));
+const findings = JSON.parse(require('fs').readFileSync('${PR_REVIEW_DIR}/findings.json','utf8'));
+let skipped = 0;
+for (const f of findings) {
+  if (f.commentId !== null) { skipped++; continue; }
+  const dup = existingComments.find(c =>
+    c.path === f.file && c.body.includes(f.title)
+  );
+  if (dup) {
+    f.commentId = dup.id;
+    skipped++;
+  }
+}
+require('fs').writeFileSync('${PR_REVIEW_DIR}/findings.json', JSON.stringify(findings, null, 2));
+process.stdout.write(JSON.stringify({ skipped }));
+" 2>&1)
+```
+
+Note: Use a temp file approach to avoid shell quoting issues with large JSON payloads:
+
+```bash
+# Write EXISTING_COMMENTS to a temp file for safe node consumption
+echo "$EXISTING_COMMENTS" > /tmp/existing_comments.json
+
+node -e "
+const existingComments = JSON.parse(require('fs').readFileSync('/tmp/existing_comments.json','utf8'));
+const findings = JSON.parse(require('fs').readFileSync('${PR_REVIEW_DIR}/findings.json','utf8'));
+let skipped = 0;
+for (const f of findings) {
+  if (f.commentId !== null) { skipped++; continue; }
+  const dup = existingComments.find(c =>
+    c.path === f.file && c.body.includes(f.title)
+  );
+  if (dup) {
+    f.commentId = dup.id;
+    skipped++;
+  }
+}
+require('fs').writeFileSync('${PR_REVIEW_DIR}/findings.json', JSON.stringify(findings, null, 2));
+process.stdout.write(JSON.stringify({ skipped }));
+" > /tmp/dedup_result.json
+SKIPPED_COUNT=$(node -e "process.stdout.write(String(JSON.parse(require('fs').readFileSync('/tmp/dedup_result.json','utf8')).skipped))")
+```
+
+### Step 4d: Partition Findings
+
+Split findings into inline-eligible and fallback arrays. Write the partition result to temp files:
+
+```bash
+echo "$HUNK_RANGES" > /tmp/hunk_ranges.json
+
+node -e "
+const hunkRanges = JSON.parse(require('fs').readFileSync('/tmp/hunk_ranges.json','utf8'));
+const findings = JSON.parse(require('fs').readFileSync('${PR_REVIEW_DIR}/findings.json','utf8'));
+
+const inlineFindings = [];
+const fallbackFindings = [];
+
+for (const f of findings) {
+  if (f.commentId !== null) continue; // already posted — skip both arrays
+  const ranges = hunkRanges[f.file] || [];
+  const inHunk = f.line > 0 && ranges.some(([s, e]) => f.line >= s && f.line <= e);
+  if (inHunk) {
+    inlineFindings.push(f);
+  } else {
+    fallbackFindings.push(f);
+  }
+}
+
+require('fs').writeFileSync('/tmp/inline_findings.json', JSON.stringify(inlineFindings, null, 2));
+require('fs').writeFileSync('/tmp/fallback_findings.json', JSON.stringify(fallbackFindings, null, 2));
+process.stdout.write(JSON.stringify({ inline: inlineFindings.length, fallback: fallbackFindings.length }));
+" > /tmp/partition_result.json
+
+INLINE_COUNT=$(node -e "process.stdout.write(String(JSON.parse(require('fs').readFileSync('/tmp/partition_result.json','utf8')).inline))")
+FALLBACK_COUNT=$(node -e "process.stdout.write(String(JSON.parse(require('fs').readFileSync('/tmp/partition_result.json','utf8')).fallback))")
+```
+
+If both `INLINE_COUNT` and `FALLBACK_COUNT` are 0 (all findings already posted), print:
+```
+All findings already posted — nothing to do
+```
+And skip Steps 4e through 4h.
+
+### Step 4e: Build Review JSON
+
+Assemble the full review payload. Write it to a temp file to avoid shell quoting issues with complex JSON:
+
+```bash
+node -e "
+const findings = JSON.parse(require('fs').readFileSync('${PR_REVIEW_DIR}/findings.json','utf8'));
+const inlineFindings = JSON.parse(require('fs').readFileSync('/tmp/inline_findings.json','utf8'));
+const fallbackFindings = JSON.parse(require('fs').readFileSync('/tmp/fallback_findings.json','utf8'));
+
+// Build severity counts summary (D-05)
+const total = findings.length;
+const critical = findings.filter(f => f.severity === 'critical').length;
+const warnings = findings.filter(f => f.severity === 'warning').length;
+const suggestions = findings.filter(f => f.severity === 'suggestion').length;
+const summaryLine = 'PR Review: ' + total + ' findings (' + critical + ' critical, ' + warnings + ' warnings, ' + suggestions + ' suggestions)';
+
+// Build review body
+const bodyParts = [summaryLine];
+
+// Fallback table for lines outside diff (D-07)
+if (fallbackFindings.length > 0) {
+  bodyParts.push('');
+  bodyParts.push('| Could not place inline | File | Line |');
+  bodyParts.push('|------------------------|------|------|');
+  for (const f of fallbackFindings) {
+    bodyParts.push('| ' + f.title + ' | ' + f.file + ' | ' + f.line + ' |');
+  }
+}
+
+bodyParts.push('');
+bodyParts.push('---');
+bodyParts.push('<sub>Posted by pr-review-agent</sub>');
+
+// Severity emoji map (D-01)
+const SEVERITY_EMOJI = { critical: '🔴', warning: '🟡', suggestion: '🔵' };
+
+// Build per-comment body (D-01, D-02)
+function buildCommentBody(f) {
+  const lines = [
+    SEVERITY_EMOJI[f.severity] + ' **' + f.severity + '** · \`' + f.category + '\`',
+    '',
+    '**' + f.title + '**',
+    '',
+    f.body,
+  ];
+  if (f.snippet) {
+    lines.push('');
+    lines.push('\`\`\`');
+    lines.push(f.snippet);
+    lines.push('\`\`\`');
+  }
+  lines.push('');
+  lines.push('---');
+  lines.push('<sub>Posted by pr-review-agent</sub>');
+  return lines.join('\n');
+}
+
+// Assemble review payload (D-04)
+const review = {
+  event: 'COMMENT',
+  body: bodyParts.join('\n'),
+  comments: inlineFindings.map(f => ({
+    path: f.file,
+    line: f.line,
+    side: 'RIGHT',
+    body: buildCommentBody(f)
+  }))
+};
+
+require('fs').writeFileSync('/tmp/review_payload.json', JSON.stringify(review));
+process.stdout.write('Review payload written: ' + inlineFindings.length + ' inline comments\n');
+"
+```
+
+### Step 4f: Submit Review
+
+Submit the review via a single `gh api` call using `--input` with the temp file (avoids stdin piping issues on Windows):
+
+```bash
+REVIEW_OUTPUT=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}/reviews" \
+  --method POST \
+  --input /tmp/review_payload.json 2>&1)
+REVIEW_EXIT=$?
+```
+
+If `REVIEW_EXIT` is non-zero, print:
+```
+Error posting review: [REVIEW_OUTPUT content]
+```
+And skip Steps 4g and 4h.
+
+Extract the review ID from the response:
+
+```bash
+REVIEW_ID=$(echo "$REVIEW_OUTPUT" | node -e "
+  const d=[];
+  process.stdin.on('data',c=>d.push(c));
+  process.stdin.on('end',()=>{
+    try { const j=JSON.parse(d.join('')); process.stdout.write(String(j.id||'')); }
+    catch(e){ process.stdout.write(''); }
+  })")
+```
+
+If `REVIEW_ID` is empty, print:
+```
+Error: Could not extract review ID from response
+```
+And skip Steps 4g and 4h.
+
+### Step 4g: Retrieve and Store commentIds
+
+CRITICAL: The create-review response does NOT include individual comment IDs. A follow-up GET call is required to retrieve per-comment IDs.
+
+Fetch the review's comments:
+
+```bash
+REVIEW_COMMENTS=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}/reviews/${REVIEW_ID}/comments" --paginate 2>&1)
+echo "$REVIEW_COMMENTS" > /tmp/review_comments.json
+```
+
+Match returned comments to findings by `path + line` and update `commentId` in findings.json:
+
+```bash
+node -e "
+const comments = JSON.parse(require('fs').readFileSync('/tmp/review_comments.json','utf8'));
+const findings = JSON.parse(require('fs').readFileSync('${PR_REVIEW_DIR}/findings.json','utf8'));
+let stored = 0;
+for (const f of findings) {
+  if (f.commentId !== null) continue; // already set from dedup pass
+  const match = comments.find(c => c.path === f.file && c.line === f.line);
+  if (match) {
+    f.commentId = match.id;
+    stored++;
+  }
+}
+require('fs').writeFileSync('${PR_REVIEW_DIR}/findings.json', JSON.stringify(findings, null, 2));
+process.stdout.write('commentIds stored: ' + stored + '\n');
+"
+```
+
+Note on duplicate file+line: If two findings share the same file+line pair, the first match wins (known limitation — rare in practice since distinct findings on the exact same line are uncommon).
+
+### Step 4h: Print Summary
+
+Print a summary of what was posted:
+
+```
+Posted: [INLINE_COUNT] new findings / Skipped: [SKIPPED_COUNT] (already posted)
+```
+
+If `FALLBACK_COUNT` is greater than 0, also print:
+```
+Fallback: [FALLBACK_COUNT] findings added to review body (lines outside diff)
+```
 </step>
 
 </execution_flow>
@@ -178,4 +474,7 @@ Only if the user requests it (`--post` flag). Consolidate findings per file to r
 - [ ] Summary printed to user
 - [ ] User prompted about posting comments
 - [ ] Preview server started (or confirmed already running) and URL printed
+- [ ] Inline comments posted to PR on correct diff lines (if --post flag)
+- [ ] All findings submitted as single batched review (if --post flag)
+- [ ] commentId stored in findings.json for each posted finding (if --post flag)
 </success_criteria>
