@@ -26,8 +26,8 @@ The developer gets a complete review-to-resolution cycle without leaving their A
 - ✓ Fix agent resolves findings directly in source code following project patterns — validated in Phase 04
 - ✓ Fix agent auto-checkouts PR branch before applying fixes — validated in Phase 03
 - ✓ One commit per finding with descriptive message (`fix(review): [title]`) — validated in Phase 04
-- [ ] Fix agent pushes commits to PR branch automatically
-- [ ] Fix agent replies to each PR inline comment with "Fixed in `<commit-hash>`" linking the commit
+- ✓ Fix agent pushes commits to PR branch automatically — validated in Phase 05
+- ✓ Fix agent replies to each PR inline comment with "Fixed in `<commit-hash>`" linking the commit — validated in Phase 05
 - [ ] Review agent posts findings as GitHub inline code review comments (on specific lines)
 - ✓ HTML UI shows fix status: green "Resolved" badge + visual dimming for fixed findings — validated in Phase 02
 - ✓ HTML UI supports filtering by fix status (pending only / all) — validated in Phase 02
@@ -48,8 +48,8 @@ The developer gets a complete review-to-resolution cycle without leaving their A
 - Zero runtime dependencies: all code uses Node.js built-ins only
 - Agent/command architecture: YAML frontmatter defines commands, `agent:` field links to agent .md files
 - GitHub CLI (`gh`) is the sole external dependency for PR interaction
-- Existing agents: `pr-reviewer.md` (review), `pr-fixer.md` (fix, complete with commit loop)
-- Existing commands: `review.md`, `setup.md`, `fix.md` (complete with filter flags and commit criteria)
+- Existing agents: `pr-reviewer.md` (review), `pr-fixer.md` (fix, complete with commit loop, push, and GitHub comment replies)
+- Existing commands: `review.md`, `setup.md`, `fix.md` (complete with filter flags, commit criteria, push, and reply steps)
 
 ## Constraints
 

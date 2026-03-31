@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Git Context** - Auto-checkout PR branch, guard against dirty tree and fork PRs (completed 2026-03-31)
 - [x] **Phase 4: Fix Engine** - Per-finding commit loop with SHA capture and idempotent re-runs (completed 2026-03-31)
 - [x] **Phase 5: GitHub Bridge** - Push commits to PR branch and reply to inline comment threads (completed 2026-03-31)
-- [ ] **Phase 6: Review Agent Inline Comments** - Post findings as line-anchored GitHub review comments
+- [x] **Phase 6: Review Agent Inline Comments** - Post findings as line-anchored GitHub review comments (completed 2026-03-31)
 
 ## Phase Details
 
@@ -105,10 +105,10 @@ Plans:
   2. All findings are submitted as a single batched review (one `gh api` call with a `comments[]` array), not one call per finding
   3. The `commentId` returned by GitHub is stored in findings.json for each posted finding
   4. A finding on a line outside the current diff hunk falls back to a general PR comment rather than silently failing
-**Plans:** 1/1 plans
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 06-01-PLAN.md -- Expand Step 4 with inline comment posting (hunk parsing, dedup, batch review, comment ID retrieval)� Expand Step 4 with inline comment posting (hunk parsing, dedup, batch review, comment ID retrieval)
+- [x] 06-01-PLAN.md -- Expand Step 4 with inline comment posting (hunk parsing, dedup, batch review, comment ID retrieval)� Expand Step 4 with inline comment posting (hunk parsing, dedup, batch review, comment ID retrieval)
 
 ## Progress
 
@@ -122,4 +122,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Git Context | 1/1 | Complete   | 2026-03-31 |
 | 4. Fix Engine | 2/2 | Complete   | 2026-03-31 |
 | 5. GitHub Bridge | 2/2 | Complete   | 2026-03-31 |
-| 6. Review Agent Inline Comments | 0/1 | In Progress | - |
+| 6. Review Agent Inline Comments | 1/1 | Complete   | 2026-03-31 |

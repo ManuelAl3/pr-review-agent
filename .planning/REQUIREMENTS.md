@@ -29,9 +29,9 @@ Requirements for the fix/resolution milestone. Each maps to roadmap phases.
 
 ### GitHub Integration
 
-- [ ] **GH-01**: Review agent posts findings as inline code review comments on specific diff lines via `gh api` (not `gh pr comment`)
-- [ ] **GH-02**: Review agent submits all comments as a single review (batch, one API call with `comments[]` array)
-- [ ] **GH-03**: Review agent stores `commentId` per finding in findings.json after posting
+- [x] **GH-01**: Review agent posts findings as inline code review comments on specific diff lines via `gh api` (not `gh pr comment`)
+- [x] **GH-02**: Review agent submits all comments as a single review (batch, one API call with `comments[]` array)
+- [x] **GH-03**: Review agent stores `commentId` per finding in findings.json after posting
 - [x] **GH-04**: Fix agent replies to each inline comment thread with "Fixed in \`<commit-hash>\`" linking the commit
 - [x] **GH-05**: Fix agent handles 422 errors (line outside diff) with fallback to general PR comment
 
@@ -96,9 +96,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FIX-06 | Phase 5 | Complete |
 | GH-04 | Phase 5 | Complete |
 | GH-05 | Phase 5 | Complete |
-| GH-01 | Phase 6 | Pending |
-| GH-02 | Phase 6 | Pending |
-| GH-03 | Phase 6 | Pending |
+| GH-01 | Phase 6 | Complete |
+| GH-02 | Phase 6 | Complete |
+| GH-03 | Phase 6 | Complete |
 
 **Coverage:**
 - v1 requirements: 24 total

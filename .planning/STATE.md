@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 05-02-PLAN.md
-last_updated: "2026-03-31T03:44:30.218Z"
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-03-31T04:24:34.690Z"
 last_activity: 2026-03-31
 progress:
   total_phases: 6
-  completed_phases: 5
-  total_plans: 9
-  completed_plans: 9
+  completed_phases: 6
+  total_plans: 10
+  completed_plans: 10
   percent: 0
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-30)
 
 **Core value:** The developer gets a complete review-to-resolution cycle without leaving their AI assistant: review a PR, see findings, fix them, and have every fix tracked on GitHub with commit links.
-**Current focus:** Phase 05 — github-bridge
+**Current focus:** Phase 06 — review-agent-inline-comments
 
 ## Current Position
 
-Phase: 6
-Plan: Not started
+Phase: 06 (review-agent-inline-comments) — EXECUTING
+Plan: 1 of 1
 Status: Phase complete — ready for verification
 Last activity: 2026-03-31
 
@@ -61,6 +61,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04-fix-engine P02 | 2 | 2 tasks | 2 files |
 | Phase 05-github-bridge P01 | 3 | 2 tasks | 2 files |
 | Phase 05-github-bridge P02 | 2 | 2 tasks | 2 files |
+| Phase 06-review-agent-inline-comments P01 | 115 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -97,6 +98,9 @@ Recent decisions affecting current work:
 - [Phase 05-github-bridge]: Reply loop only processes findings with BOTH status resolved AND non-null commentId (D-12)
 - [Phase 05-github-bridge]: 422 detection via grep '"status":"422"' on gh api stdout — simpler than node -e JSON parse
 - [Phase 05-github-bridge]: Batched fallback via gh pr comment (not gh api) — cannot produce 422, simpler, handles repo resolution automatically
+- [Phase 06-review-agent-inline-comments]: Temp file pattern for JSON payloads: write to /tmp/ to avoid shell quoting issues on Windows
+- [Phase 06-review-agent-inline-comments]: First-match-wins for duplicate file+line commentId: documented known limitation for rare case of two findings on exact same line
+- [Phase 06-review-agent-inline-comments]: Use --input file instead of --input - with stdin pipe to avoid Windows bash piping edge cases with large JSON payloads
 
 ### Pending Todos
 
@@ -109,6 +113,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-31T03:40:23.764Z
-Stopped at: Completed 05-02-PLAN.md
+Last session: 2026-03-31T04:24:34.684Z
+Stopped at: Completed 06-01-PLAN.md
 Resume file: None
