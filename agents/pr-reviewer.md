@@ -173,7 +173,33 @@ Skipping comment posting (no --post flag)
 ```
 And skip all remaining sub-steps in Step 4.
 
-If `--post` IS present, proceed with Steps 4b through 4h.
+If `--post` IS present, proceed to the permission check below.
+
+### Step 4a.1: Permission Check
+
+Verify the authenticated user has sufficient permission to post review comments on the repo.
+
+1. Get the authenticated GitHub username:
+```bash
+GH_USER=$(gh api user --jq '.login' 2>&1)
+```
+
+2. Check the user's permission level on the repo:
+```bash
+PERMISSION=$(gh api "repos/${REPO}/collaborators/${GH_USER}/permission" --jq '.permission' 2>&1)
+```
+
+3. If the `gh api` call fails (e.g., 404 for non-collaborators, network error, or empty output), treat `PERMISSION` as `"none"`.
+
+4. If `PERMISSION` is NOT one of `write`, `maintain`, or `admin`, print:
+```
+Cannot post comments: your permission level on ${REPO} is "${PERMISSION}".
+Required: write, maintain, or admin.
+Skipping comment posting.
+```
+Then skip all remaining substeps in Step 4 (4b through 4h).
+
+5. If `PERMISSION` IS one of `write`, `maintain`, or `admin`, proceed to Step 4b.
 
 ### Step 4b: Parse Diff Hunks
 
