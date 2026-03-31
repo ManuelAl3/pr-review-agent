@@ -141,18 +141,53 @@ Findings to fix: X of Y total (Z resolved, skipped)
 <step name="analyze_before_fix">
 ## Step 2: Analyze Before Fixing
 
-For each finding to fix:
+For each finding in `pendingFindings`:
 
 1. **Read the target file** — Always read the full file (or relevant section) before editing
-2. **Locate the issue** — Use the `line`, `file`, and `snippet` fields. The line number is approximate — search for the actual code pattern from the snippet
-3. **Study existing patterns** — If the fix requires following a pattern (e.g., adding a domain layer, using semantic tokens), find an existing correct example in the codebase first:
-   - For architecture fixes: find a module that already implements the pattern correctly
-   - For i18n fixes: find a component that already uses `t()` / `useTranslation()` correctly
-   - For design-token fixes: find a component that already uses semantic tokens
-   - For backend pattern fixes: find a controller/service that follows the correct pattern
-4. **Plan the fix** — Determine exactly what needs to change
 
-**IMPORTANT:** If the snippet contains `→`, the left side is what exists now and the right side is what it should become. Verify the left side matches the actual file content before applying.
+### Snippet-based code location
+
+For each finding in `pendingFindings`:
+
+1. **Extract snippet sides (per D-03):** Split `finding.snippet` on ` → ` (space-arrow-space).
+   - `currentCode = snippet.split(' → ')[0]`
+   - `expectedCode = snippet.split(' → ').at(-1)` (last element — handles embedded → in code)
+
+2. **Read target file:** Read `finding.file` using Read tool. If file does not exist:
+   `⊘ Skipped: [title] — file not found`
+   Continue to next finding (per D-06).
+
+3. **Exact match (per D-03):** Search file content for `currentCode` as an exact substring.
+   - If found: record the match location. Proceed to step 5.
+
+4. **Whitespace-normalized fallback (per D-04):** If exact match fails:
+   - Normalize `currentCode`: trim leading/trailing whitespace, collapse all internal runs of whitespace/newlines to a single space.
+   - Normalize each line of the file content the same way.
+   - Search for normalized `currentCode` in the normalized file content.
+   - If found: locate the ORIGINAL (non-normalized) text at that position in the file. The Edit tool requires exact original strings, not normalized ones.
+   - If still not found (per D-05):
+     `⊘ Skipped: [title] — code has changed since review`
+     Continue to next finding (per D-06).
+
+5. **Proceed to fix** with the original `currentCode` (from file) and `expectedCode` (from snippet).
+
+### Reference implementation search
+
+Before applying a pattern-based fix, search for 1-2 reference files (per D-18):
+
+Category-to-search-term mapping:
+- **i18n** → Grep for `useTranslation` or `t('` in files in the same directory as `finding.file`
+- **design-token** → Grep for the CSS variable name or semantic token from the snippet's expected side, same directory
+- **architecture** → Glob for files matching the expected pattern (e.g., `*Service.ts`, `*Controller.ts`) in parent directory
+- **security** → Grep for `@UseGuards` or equivalent guard/decorator in same directory
+- **other categories** → Skip reference search; apply fix based on snippet guidance alone (per D-19)
+
+Search depth (per D-20): same directory first, then parent directory. No deeper.
+
+- If 0 references found: proceed with snippet-only fix (per D-19)
+- If 1-2 references found: Read one reference file, extract the pattern, use it to guide the fix application
+
+2. **Plan the fix** — Determine exactly what needs to change based on snippet and reference implementation
 </step>
 
 <step name="apply_fixes">
