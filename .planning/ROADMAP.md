@@ -49,7 +49,7 @@ Plans:
 
 Plans:
 - [ ] 02-01-PLAN.md — Add resolution display CSS/HTML/JS to index.html (badge, dimming, chip, filter)
-- [ ] 02-02-PLAN.md — Add auto-start preview server to review agent + test fixture
+- [x] 02-02-PLAN.md — Add auto-start preview server to review agent + test fixture
 **UI hint**: yes
 
 ### Phase 3: Git Context

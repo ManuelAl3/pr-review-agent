@@ -41,7 +41,7 @@ Requirements for the fix/resolution milestone. Each maps to roadmap phases.
 - [ ] **UI-02**: Resolved findings are visually dimmed (reduced opacity + strikethrough on title)
 - [ ] **UI-03**: User can filter findings to show pending only, resolved only, or all
 - [ ] **UI-04**: Resolved findings display clickable commit hash linking to the commit on GitHub
-- [ ] **UI-05**: Review agent auto-starts preview server and prints URL after generating findings
+- [x] **UI-05**: Review agent auto-starts preview server and prints URL after generating findings
 
 ## v2 Requirements
 
@@ -83,7 +83,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UI-02 | Phase 2 | Pending |
 | UI-03 | Phase 2 | Pending |
 | UI-04 | Phase 2 | Pending |
-| UI-05 | Phase 2 | Pending |
+| UI-05 | Phase 2 | Complete |
 | FIX-01 | Phase 3 | Pending |
 | FIX-02 | Phase 3 | Pending |
 | FIX-07 | Phase 3 | Pending |
