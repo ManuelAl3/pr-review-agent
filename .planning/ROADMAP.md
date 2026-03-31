@@ -13,7 +13,7 @@ This milestone extends the existing working PR review tool with a complete fix-a
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Schema Foundation** - Extend findings.json with status, commitHash, and commentId fields (completed 2026-03-30)
-- [ ] **Phase 2: UI Resolution Display** - Show resolved state in the HTML UI with badges, dimming, and filtering
+- [x] **Phase 2: UI Resolution Display** - Show resolved state in the HTML UI with badges, dimming, and filtering (completed 2026-03-31)
 - [ ] **Phase 3: Git Context** - Auto-checkout PR branch, guard against dirty tree and fork PRs
 - [ ] **Phase 4: Fix Engine** - Per-finding commit loop with SHA capture and idempotent re-runs
 - [ ] **Phase 5: GitHub Bridge** - Push commits to PR branch and reply to inline comment threads
@@ -45,10 +45,10 @@ Plans:
   3. User can switch between "All", "Pending only", and "Resolved only" views using a toggle in the sidebar
   4. A finding with `status: "pending"` displays no badge and full opacity (unchanged from current behavior)
   5. After generating findings, the review agent auto-starts the preview server (if not already running) and prints the URL to the user
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 02-01-PLAN.md — Add resolution display CSS/HTML/JS to index.html (badge, dimming, chip, filter)
+- [x] 02-01-PLAN.md — Add resolution display CSS/HTML/JS to index.html (badge, dimming, chip, filter)
 - [x] 02-02-PLAN.md — Add auto-start preview server to review agent + test fixture
 **UI hint**: yes
 
@@ -104,7 +104,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Schema Foundation | 2/2 | Complete   | 2026-03-30 |
-| 2. UI Resolution Display | 0/2 | Planning complete | - |
+| 2. UI Resolution Display | 2/2 | Complete   | 2026-03-31 |
 | 3. Git Context | 0/? | Not started | - |
 | 4. Fix Engine | 0/? | Not started | - |
 | 5. GitHub Bridge | 0/? | Not started | - |
