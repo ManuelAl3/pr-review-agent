@@ -403,7 +403,7 @@
     // ===== State =====
     let reviewData = [], config = {}, categoryLabels = {}, categoryColors = {};
     let severityIcons = { critical: '\u26d4', warning: '\u26a0\ufe0f', suggestion: '\ud83d\udca1' };
-    let activeFilters = { severity: null, category: null, file: null };
+    let activeFilters = { status: null, severity: null, category: null, file: null };
     let editingIdx = null, serverAvailable = false;
     let catModalMode = 'create', catModalOriginalKey = null, pendingDeleteCatKey = null, pendingDeleteFile = null;
     const severityOrder = { critical: 0, warning: 1, suggestion: 2 };
@@ -707,7 +707,7 @@
         commentId: null
       });
       closeCommentModal();
-      activeFilters = { severity: null, category: null, file: null };
+      activeFilters = { status: null, severity: null, category: null, file: null };
       render();
       await persistToDisk();
     }
@@ -769,7 +769,7 @@
       };
       const s = states[type] || states['no-analysis'];
       el.innerHTML = `<div class="empty-state"><div class="empty-state-icon ${s.cls||''}">${s.icon}</div><div class="empty-state-title">${s.title}</div><div class="empty-state-text">${s.text}</div>${s.hint ? `<div class="empty-state-hint">${s.hint}</div>` : ''}</div>`;
-      ['criticalCount','warningCount','suggestionCount','totalCount'].forEach(id => { document.getElementById(id).textContent = type === 'loading' ? '-' : '0'; });
+      ['criticalCount','warningCount','suggestionCount','totalCount','resolvedCount'].forEach(id => { document.getElementById(id).textContent = type === 'loading' ? '-' : '0'; });
     }
 
     // ===== Header & CSS =====
@@ -795,6 +795,8 @@
 
       const search = document.getElementById('searchInput').value.toLowerCase();
       const filtered = reviewData.map((item, i) => ({ ...item, _idx: i })).filter(item => {
+        if (activeFilters.status === 'pending' && item.status !== 'pending') return false;
+        if (activeFilters.status === 'resolved' && item.status !== 'resolved') return false;
         if (activeFilters.severity && item.severity !== activeFilters.severity) return false;
         if (activeFilters.category && item.category !== activeFilters.category) return false;
         if (activeFilters.file && item.file !== activeFilters.file) return false;
@@ -808,11 +810,23 @@
       document.getElementById('warningCount').textContent = warning;
       document.getElementById('suggestionCount').textContent = suggestion;
       document.getElementById('totalCount').textContent = total;
+      const resolved = filtered.filter(i => i.status === 'resolved').length;
+      document.getElementById('resolvedCount').textContent = resolved;
 
       document.getElementById('summaryBar').style.display = total > 0 ? 'flex' : 'none';
       if (total > 0) document.getElementById('progressBar').innerHTML = `<div class="progress-segment" style="width:${critical/total*100}%;background:var(--accent-red)"></div><div class="progress-segment" style="width:${warning/total*100}%;background:var(--accent-yellow)"></div><div class="progress-segment" style="width:${suggestion/total*100}%;background:var(--accent-blue)"></div>`;
 
       // Sidebar
+      const statusItems = [
+        { value: null, label: 'All', count: reviewData.length },
+        { value: 'pending', label: 'Pending', count: reviewData.filter(i => i.status === 'pending').length },
+        { value: 'resolved', label: 'Resolved', count: reviewData.filter(i => i.status === 'resolved').length },
+      ];
+      document.getElementById('statusFilters').innerHTML = statusItems.map(s => {
+        const a = activeFilters.status === s.value ? ' active' : '';
+        return `<div class="filter-item${a}" onclick="toggleFilter('status', ${JSON.stringify(s.value)})"><span class="filter-item-left">${s.label}</span><span class="filter-count">${s.count}</span></div>`;
+      }).join('');
+
       document.getElementById('severityFilters').innerHTML = ['critical','warning','suggestion'].map(sev => {
         const c = reviewData.filter(i => i.severity === sev).length, a = activeFilters.severity === sev ? ' active' : '';
         return `<div class="filter-item${a}" onclick="toggleFilter('severity','${sev}')"><span class="filter-item-left"><span class="severity-badge severity-${sev}" style="font-size:10px">${sev}</span></span><span class="filter-count">${c}</span></div>`;
@@ -869,14 +883,17 @@
     }
 
     function renderCard(i) {
-      return `<div class="comment-card">
+      const resolvedClass = i.status === 'resolved' ? ' resolved' : '';
+      return `<div class="comment-card${resolvedClass}">
         <div class="card-actions">
           <button class="card-action-btn" onclick="event.stopPropagation();startEdit(${i._idx})" title="Edit">\u270e</button>
           <button class="card-action-btn danger" onclick="event.stopPropagation();if(confirm('Delete this comment?'))deleteComment(${i._idx})" title="Delete">\u2715</button>
         </div>
         <div class="comment-header">
           <span class="severity-badge severity-${i.severity}">${getSevIcon(i.severity)} ${i.severity}</span>
+          ${i.status === 'resolved' ? '<span class="severity-badge severity-resolved">Resolved</span>' : ''}
           <span class="category-tag"><span class="filter-dot cat-${i.category}"></span>${getCatLabel(i.category)}</span>
+          ${i.commitHash ? (config.pr && config.pr.repo ? `<a class="commit-chip" href="https://github.com/${config.pr.repo}/commit/${i.commitHash}" target="_blank" rel="noopener">${i.commitHash.slice(0,7)}</a>` : `<span class="commit-chip">${i.commitHash.slice(0,7)}</span>`) : ''}
           <span class="comment-title">${i.title}</span>
           ${i.line ? `<span class="line-ref">L${i.line}</span>` : ''}
         </div>
