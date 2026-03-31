@@ -29,8 +29,8 @@ The developer gets a complete review-to-resolution cycle without leaving their A
 - [ ] Fix agent pushes commits to PR branch automatically
 - [ ] Fix agent replies to each PR inline comment with "Fixed in `<commit-hash>`" linking the commit
 - [ ] Review agent posts findings as GitHub inline code review comments (on specific lines)
-- [ ] HTML UI shows fix status: green "Resolved" badge + visual dimming for fixed findings
-- [ ] HTML UI supports filtering by fix status (pending only / all)
+- ✓ HTML UI shows fix status: green "Resolved" badge + visual dimming for fixed findings — validated in Phase 02
+- ✓ HTML UI supports filtering by fix status (pending only / all) — validated in Phase 02
 - ✓ Findings JSON has `status` field ("pending" | "resolved") with optional `commitHash` and `commentId` — validated in Phase 01
 - [ ] Filter flags for fix command: `--all`, `--only N`, `--severity X`, `--category X`
 
@@ -66,7 +66,7 @@ The developer gets a complete review-to-resolution cycle without leaving their A
 | One commit per finding | Maximum traceability — reviewer sees exactly what changed per issue | — Pending |
 | Inline code review comments | Matches how human reviewers work on GitHub — comments on specific lines | — Pending |
 | Reply per comment with commit link | GitHub best practice — each thread shows resolution status | — Pending |
-| Badge + strikethrough for resolved UI | Natural UX pattern (like GitHub Issues) — dimmed but visible, filterable | — Pending |
+| Badge + strikethrough for resolved UI | Natural UX pattern (like GitHub Issues) — dimmed but visible, filterable | ✓ Phase 02 |
 | Auto-checkout PR branch | Zero friction for developer — agent handles git state automatically | — Pending |
 | Findings gain `status` + `commitHash` + `commentId` fields | Enables UI to track resolution and link to commits | ✓ Phase 01 |
 
@@ -88,4 +88,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-30 after Phase 01 (Schema Foundation) completion*
+*Last updated: 2026-03-30 after Phase 02 (UI Resolution Display) completion*
