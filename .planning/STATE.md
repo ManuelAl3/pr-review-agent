@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
-status: executing
-stopped_at: Completed 04-fix-engine-01-PLAN.md
-last_updated: "2026-03-31T02:38:50.471Z"
+status: verifying
+stopped_at: Completed 04-fix-engine-02-PLAN.md
+last_updated: "2026-03-31T02:44:09.825Z"
 last_activity: 2026-03-31
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
   percent: 0
 ---
 
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-03-30)
 
 Phase: 04 (fix-engine) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-03-31
 
 Progress: [░░░░░░░░░░] 0%
@@ -58,6 +58,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-ui-resolution-display P01 | 10 | 2 tasks | 1 files |
 | Phase 03-git-context P01 | 1 | 2 tasks | 2 files |
 | Phase 04-fix-engine P01 | 2 | 2 tasks | 1 files |
+| Phase 04-fix-engine P02 | 2 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,9 @@ Recent decisions affecting current work:
 - [Phase 04-fix-engine]: pendingFindings is the canonical pipeline output from Step 1 to Step 3 — only unresolved, filtered findings enter the fix loop
 - [Phase 04-fix-engine]: Snippet extraction uses split(' → ')[0] for current and .at(-1) for expected to handle embedded arrow characters in code
 - [Phase 04-fix-engine]: Reference search depth limited to same directory then parent directory — no exhaustive codebase scan (D-20)
+- [Phase 04-fix-engine]: Per-finding git commit uses git add specific file to avoid staging findings.json (D-01)
+- [Phase 04-fix-engine]: SHA captured via git rev-parse HEAD after confirmed commit — not parsed from commit output
+- [Phase 04-fix-engine]: findings.json written after each fix via Write tool for idempotency — not batched at end
 
 ### Pending Todos
 
@@ -98,6 +102,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-31T02:38:50.466Z
-Stopped at: Completed 04-fix-engine-01-PLAN.md
+Last session: 2026-03-31T02:44:09.818Z
+Stopped at: Completed 04-fix-engine-02-PLAN.md
 Resume file: None

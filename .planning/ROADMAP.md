@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Schema Foundation** - Extend findings.json with status, commitHash, and commentId fields (completed 2026-03-30)
 - [x] **Phase 2: UI Resolution Display** - Show resolved state in the HTML UI with badges, dimming, and filtering (completed 2026-03-31)
 - [x] **Phase 3: Git Context** - Auto-checkout PR branch, guard against dirty tree and fork PRs (completed 2026-03-31)
-- [ ] **Phase 4: Fix Engine** - Per-finding commit loop with SHA capture and idempotent re-runs
+- [x] **Phase 4: Fix Engine** - Per-finding commit loop with SHA capture and idempotent re-runs (completed 2026-03-31)
 - [ ] **Phase 5: GitHub Bridge** - Push commits to PR branch and reply to inline comment threads
 - [ ] **Phase 6: Review Agent Inline Comments** - Post findings as line-anchored GitHub review comments
 
@@ -75,11 +75,11 @@ Plans:
   3. Re-running the fix command skips findings already marked `status: "resolved"` without creating duplicate commits
   4. Running `fix --severity critical` applies only critical-severity findings; `fix --only 2` applies only finding number 2; filters can be combined
   5. When a finding's snippet text is not found in the target file, the fix is skipped with a "code has changed since review" message
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 04-01-PLAN.md — Add filter AND logic, idempotency filter, snippet matching, and reference search to Steps 1-2
-- [ ] 04-02-PLAN.md — Add per-finding commit loop, SHA capture, findings.json persistence, and summary to Steps 3-4
+- [x] 04-02-PLAN.md — Add per-finding commit loop, SHA capture, findings.json persistence, and summary to Steps 3-4
 
 ### Phase 5: GitHub Bridge
 **Goal**: All fix commits are pushed to the PR branch and each resolved GitHub thread gets a reply linking the fixing commit
@@ -113,6 +113,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Schema Foundation | 2/2 | Complete   | 2026-03-30 |
 | 2. UI Resolution Display | 2/2 | Complete   | 2026-03-31 |
 | 3. Git Context | 1/1 | Complete   | 2026-03-31 |
-| 4. Fix Engine | 1/2 | In Progress|  |
+| 4. Fix Engine | 2/2 | Complete   | 2026-03-31 |
 | 5. GitHub Bridge | 0/? | Not started | - |
 | 6. Review Agent Inline Comments | 0/? | Not started | - |
