@@ -34,7 +34,66 @@ Before starting any fix:
 
 <execution_flow>
 
-<step name="load_findings" priority="first">
+<step name="pre_flight" priority="first">
+## Step 0: Pre-flight Safety Gate
+
+Before touching any file or loading findings, ensure the working environment is safe.
+
+### 0a. Load PR metadata
+
+Read `$PR_REVIEW_DIR/config.json`. Extract `pr.number` and `pr.head`.
+
+If `config.json` does not exist or cannot be parsed:
+```
+Error: config.json missing. Run /pr-review:review first.
+```
+Stop — do not proceed to any further steps.
+
+### 0b. Dirty tree check (per D-04)
+
+Run:
+```bash
+DIRTY=$(git status --porcelain | grep -v '^??')
+```
+
+If `$DIRTY` is non-empty (tracked files have uncommitted changes):
+```
+Error: dirty working tree. Run 'git stash' or 'git commit' first.
+```
+Stop — do not switch branches, do not load findings, do not modify any file.
+
+Untracked files (`??` lines) are ignored — they do not affect branch switching.
+
+### 0c. Branch checkout (per D-01, D-02)
+
+Determine the current branch:
+```bash
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+```
+
+Compare `$CURRENT_BRANCH` to `pr.head` from config.json:
+- If they match: skip checkout silently. No message, no `gh pr checkout` call.
+- If they differ: run `gh pr checkout $PR_NUMBER` where `$PR_NUMBER` is `pr.number` from config.json.
+
+### 0d. Fork detection (per D-06, D-07, D-08)
+
+After checkout (or skip), detect fork status:
+```bash
+IS_FORK=$(gh pr view $PR_NUMBER --json isCrossRepository --jq '.isCrossRepository')
+```
+
+Store `$IS_FORK` (string `"true"` or `"false"`) for use by downstream steps.
+
+If `$IS_FORK` is `"true"`, print:
+```
+Warning: fork PR — edits applied locally only. Commits, push, and replies skipped.
+```
+
+**Downstream usage:** Later steps (Phase 4 commit loop, Phase 5 push/reply) MUST check `$IS_FORK` before creating commits, pushing, or posting comment replies. If `$IS_FORK` is `"true"`, those actions are skipped — only local file edits are applied.
+
+</step>
+
+<step name="load_findings" priority="second">
 ## Step 1: Load Findings and Context
 
 1. Read the findings file from the path provided in the prompt
@@ -146,7 +205,8 @@ If any findings were skipped, explain what manual action is needed.
 - **NEVER modify files not mentioned in findings** — no drive-by fixes
 - **NEVER change test expectations** to make tests pass — fix the source code
 - **NEVER introduce new dependencies** unless the finding explicitly requires it
-- **NEVER commit changes** — the user decides when to commit
+- **NEVER commit changes** — the user decides when to commit. When `$IS_FORK` is `true`, do not create any commits at all — only apply edits to the working tree
+- **NEVER switch branches on a dirty working tree** — if `git status --porcelain` shows tracked changes (lines not starting with `??`), abort immediately with the dirty tree error
 - If a file has multiple findings, fix them in reverse line order (bottom-up) to preserve line numbers
 - If two findings conflict, skip the second and report the conflict
 - **NEVER assume findings have `status`, `commitHash`, or `commentId` fields** — old findings files may lack them. Always apply defaults: `status ?? 'pending'`, `commitHash ?? null`, `commentId ?? null`

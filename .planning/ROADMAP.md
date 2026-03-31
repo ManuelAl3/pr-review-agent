@@ -60,7 +60,10 @@ Plans:
   1. Running the fix command on a PR automatically checks out the PR branch via `gh pr checkout` before any file is modified
   2. Running the fix command with a dirty working tree prints a clear warning and exits without changing any file or switching branches
   3. Running the fix command on a fork PR (cross-repository) prints a clear warning, skips push/commit/reply steps, but still applies local edits
-**Plans**: TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 03-01-PLAN.md — Add pre-flight safety gate to fix agent (checkout, dirty tree, fork detection)
 
 ### Phase 4: Fix Engine
 **Goal**: Each finding that passes filters gets one traceable commit, findings.json is updated per-commit, and re-runs skip already-resolved findings
@@ -105,7 +108,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Schema Foundation | 2/2 | Complete   | 2026-03-30 |
 | 2. UI Resolution Display | 2/2 | Complete   | 2026-03-31 |
-| 3. Git Context | 0/? | Not started | - |
+| 3. Git Context | 0/1 | Not started | - |
 | 4. Fix Engine | 0/? | Not started | - |
 | 5. GitHub Bridge | 0/? | Not started | - |
 | 6. Review Agent Inline Comments | 0/? | Not started | - |
