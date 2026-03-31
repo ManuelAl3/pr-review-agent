@@ -139,6 +139,27 @@ The HTML template (`$PR_REVIEW_DIR/index.html`) loads data dynamically from thes
 
 ### 3c. Summary report
 Print a summary table with counts by category and severity.
+
+### 3d. Auto-start preview server
+After writing findings and printing the summary, start the preview server so the user can immediately view results.
+
+1. Check if the server is already running on port 3847:
+```bash
+node -e "const h=require('http');h.get('http://localhost:3847/api/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))" 2>/dev/null
+```
+
+2. If exit code is 0 (server already running), skip starting a new process.
+
+3. If exit code is non-zero (server not running), start it in the background:
+```bash
+node "$PR_REVIEW_DIR/serve.js" > /dev/null 2>&1 &
+```
+Redirect stdout/stderr to `/dev/null` to prevent the background process from blocking the agent on Windows.
+
+4. Always print the preview URL:
+```
+Preview: http://localhost:3847
+```
 </step>
 
 <step name="post_comments">
@@ -156,4 +177,5 @@ Only if the user requests it (`--post` flag). Consolidate findings per file to r
 - [ ] config.json written with PR metadata
 - [ ] Summary printed to user
 - [ ] User prompted about posting comments
+- [ ] Preview server started (or confirmed already running) and URL printed
 </success_criteria>
