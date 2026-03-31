@@ -53,7 +53,7 @@ user to customize the "Project-Specific Rules" section before proceeding.
 7. Generate structured findings (`$PR_REVIEW_DIR/findings.json`)
 8. Generate config (`$PR_REVIEW_DIR/config.json`)
 9. Print summary to user
-10. If --post flag: ask confirmation then post comments to PR
+10. If --post flag: parse diff hunks, dedup against existing comments, submit batched review with inline comments, retrieve and store commentIds in findings.json
 </process>
 
 <success_criteria>
@@ -61,5 +61,7 @@ user to customize the "Project-Specific Rules" section before proceeding.
 - [ ] findings.json created
 - [ ] config.json created
 - [ ] Summary table displayed
-- [ ] Comments posted to PR (if --post flag used)
+- [ ] Inline review comments posted on correct diff lines in Files Changed tab (if --post flag)
+- [ ] All findings submitted as single batched review, not one call per finding (if --post flag)
+- [ ] commentId stored in findings.json for each posted finding (if --post flag)
 </success_criteria>
