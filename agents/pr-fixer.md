@@ -305,6 +305,40 @@ If no findings were skipped, omit the Skipped section entirely.
 If all findings were skipped, the Fixed section shows "(none)".
 </step>
 
+<step name="push">
+## Step 5: Push Commits to PR Branch
+
+Push all fix commits to the remote PR branch in a single operation (per D-03).
+
+### Guards
+
+1. **Fork guard (per D-04, D-16):** If `$IS_FORK` is `"true"`:
+   ```
+   Push: skipped (fork PR)
+   ```
+   Skip the entire step — do not run `git push`.
+
+2. **No-fixes guard:** If `pendingFindings` was empty or all findings were skipped (zero commits created in Step 3):
+   Skip the entire step silently — nothing to push.
+
+### Push
+
+Run:
+```bash
+PUSH_OUTPUT=$(git push 2>&1)
+PUSH_EXIT=$?
+```
+
+- If `$PUSH_EXIT` is 0: print `Push: ✓ pushed to remote`
+- If `$PUSH_EXIT` is non-zero (per D-08, D-09):
+  ```
+  Error: push failed — run 'git push' manually.
+    {PUSH_OUTPUT}
+  ```
+  Do NOT stop — continue to Step 6 (reply_comments). Push failure must not prevent comment replies from being attempted (per D-08).
+
+</step>
+
 </execution_flow>
 
 <constraints>
@@ -329,4 +363,6 @@ If all findings were skipped, the Fixed section shows "(none)".
 - [ ] findings.json updated after each fix with status "resolved" and commitHash
 - [ ] Re-running skips already-resolved findings (idempotent)
 - [ ] Fork PRs: edits applied, findings.json updated, but no commits created
+- [ ] All fix commits pushed to PR branch in a single git push (non-fork only)
+- [ ] Push failure does not prevent comment reply step from executing
 </success_criteria>
