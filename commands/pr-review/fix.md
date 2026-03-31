@@ -64,6 +64,10 @@ tell the user to run `/pr-review:review <pr-url>` first.
    e. If not fork: stage fixed file, commit with `fix(review): [title]`, capture SHA
    f. Update findings.json: set status to "resolved", store commitHash (null for forks)
 7. Print summary with fixed/skipped counts
+8. **Push commits to remote (non-fork only):**
+   a. If fork PR ($IS_FORK is "true"): skip push, print "Push: skipped (fork PR)"
+   b. If no fixes were applied: skip push silently
+   c. Run `git push` — on failure, print error with hint to push manually; continue to reply step
 </process>
 
 <success_criteria>
@@ -79,4 +83,5 @@ tell the user to run `/pr-review:review <pr-url>` first.
 - [ ] findings.json reflects resolved status and commitHash after each fix
 - [ ] Re-runs skip already-resolved findings without duplicate commits
 - [ ] Skipped findings reported with reasons in summary
+- [ ] Fix commits pushed to PR branch in a single git push (skipped for forks)
 </success_criteria>
