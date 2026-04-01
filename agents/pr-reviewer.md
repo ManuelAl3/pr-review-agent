@@ -259,6 +259,51 @@ rl.question('Select skills (all / none / 1,3 / Enter = all): ', (answer) => {
 SKILL_COUNT=$(node -e "try{process.stdout.write(String(JSON.parse(require('fs').readFileSync('/tmp/skills.json','utf8')).length))}catch(e){process.stdout.write('0')}" 2>/dev/null)
 ```
 
+3c. Inject selected skill content (CTX-01):
+```bash
+# Step 1c: Inject Selected Skill Content (CTX-01)
+# Per D-01: runs immediately after Step 1b selection
+# Per D-02: reads /tmp/skills.json (already filtered by selection)
+node -e "
+const fs = require('fs');
+const path = require('path');
+
+let skills;
+try {
+  skills = JSON.parse(fs.readFileSync('/tmp/skills.json', 'utf8'));
+} catch(e) {
+  process.exit(0); // No skills file or unparseable — skip silently
+}
+
+// Guard: zero skills = no output at all (avoids empty heading pitfall)
+if (!skills || skills.length === 0) process.exit(0);
+
+// Per D-01: output under ## Active Skills Context heading
+process.stdout.write('\n## Active Skills Context\n\n');
+process.stdout.write('The following skill definitions are MANDATORY review criteria.\n');
+process.stdout.write('Treat violations of skill-defined patterns the same as REVIEW-PLAN.md violations.\n\n');
+
+// Per D-06: preserve discovery priority order from /tmp/skills.json
+for (const skill of skills) {
+  let content;
+  try {
+    content = fs.readFileSync(skill.path, 'utf8');
+  } catch(e) {
+    process.stderr.write('[skills] Could not read skill file: ' + skill.path + ' — skipped\n');
+    continue;
+  }
+
+  // Per D-05: strip YAML frontmatter using same --- delimiter pattern as Phase 7
+  const fmBlock = content.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n/);
+  const body = fmBlock ? content.slice(fmBlock[0].length) : content;
+
+  // Per D-04: heading with skill-name and source-dir
+  process.stdout.write('### ' + skill.name + ' (' + skill.source + ')\n\n');
+  process.stdout.write(body.trim() + '\n\n');
+}
+"
+```
+
 4. Parse the PR URL/number from arguments
 5. Fetch PR metadata:
 ```bash
@@ -280,7 +325,9 @@ For each code file in the PR (skip .planning/, .md, lock files, migrations):
 gh api repos/{OWNER/REPO}/pulls/{PR_NUMBER}/files --paginate --jq '.[] | select(.filename == "FILE") | .patch'
 ```
 
-2. Analyze against REVIEW-PLAN.md checklist categories.
+2. Analyze against:
+   - REVIEW-PLAN.md checklist categories
+   - If an `## Active Skills Context` section is present (from Step 1c), treat it as mandatory criteria equal to REVIEW-PLAN.md. Skill-defined pattern violations produce findings with the same 10-field schema. Use the skill name as the `category` field when no REVIEW-PLAN.md category matches.
 
 3. For each finding, record a JSON object with exactly these fields:
    - `file` (string): Full file path relative to repo root

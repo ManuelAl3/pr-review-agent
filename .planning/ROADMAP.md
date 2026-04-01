@@ -150,7 +150,10 @@ Plans:
   2. The full content of each selected skill file is injected into the review context under a clearly labeled `## Active Skills Context` block that the agent treats as mandatory criteria
   3. After the review completes, config.json includes a `skills` field listing the names of all skills that were active during that review
   4. A PR review run with no skills selected produces identical output to a pre-v1.2 review (no skills block, no `skills` field in config.json beyond an empty array)
-**Plans**: TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 09-01-PLAN.md — Add Step 1c skill injection, update Step 2 mandatory criteria, extend Step 3b config.json with skills array
 
 ## Progress
 
@@ -167,4 +170,4 @@ Phases execute in numeric order: 7 -> 8 -> 9
 | 6. Review Agent Inline Comments | v1.1 | 1/1 | Complete | 2026-03-31 |
 | 7. Skill Discovery | v1.2 | 1/1 | Complete   | 2026-04-01 |
 | 8. Skill Selection | v1.2 | 1/1 | Complete   | 2026-04-01 |
-| 9. Context Injection | v1.2 | 0/? | Not started | - |
+| 9. Context Injection | v1.2 | 0/1 | Not started | - |
