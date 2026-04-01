@@ -156,6 +156,109 @@ SKILL_COUNT=$(node -e "try{process.stdout.write(String(JSON.parse(require('fs').
 
 If `SKILL_COUNT` is greater than 0, skills are available for selection in Phase 8. If 0, no skill-related output is shown.
 
+3b. Select skills (SEL-01, SEL-02, SEL-03):
+```bash
+node -e "
+const fs = require('fs');
+const readline = require('readline');
+
+// Read discovered skills
+let skills;
+try {
+  skills = JSON.parse(fs.readFileSync('/tmp/skills.json', 'utf8'));
+} catch(e) {
+  process.exit(0); // No skills file — skip silently
+}
+
+// SEL-03: zero skills → skip entirely
+if (skills.length === 0) process.exit(0);
+
+// Parse --skills flag from ARGUMENTS env var
+const args = process.env.ARGS || '';
+const flagMatch = args.match(/--skills\s+(\S+)/);
+let skillsFlag = flagMatch ? flagMatch[1] : null;
+
+// Pitfall 4 guard: if captured value starts with --, treat as no flag
+if (skillsFlag !== null && skillsFlag.startsWith('--')) skillsFlag = null;
+
+// Helper: filter by names (D-06, D-08)
+function filterByNames(nameList) {
+  const selected = [];
+  for (const raw of nameList.split(',')) {
+    const target = raw.trim().toLowerCase();
+    const found = skills.find(s => s.name.toLowerCase() === target);
+    if (found) {
+      selected.push(found);
+    } else {
+      process.stderr.write('[skills] Unknown skill name: ' + raw.trim() + ' — skipped\n');
+    }
+  }
+  return selected;
+}
+
+// SEL-02: --skills flag present → skip prompt (D-07)
+if (skillsFlag !== null) {
+  let selected;
+  if (skillsFlag === 'all') {
+    selected = skills;
+  } else if (skillsFlag === 'none') {
+    selected = [];
+  } else {
+    selected = filterByNames(skillsFlag);
+  }
+  fs.writeFileSync('/tmp/skills.json', JSON.stringify(selected));
+  const names = selected.map(s => s.name).join(', ');
+  process.stdout.write('Using ' + selected.length + ' skills' + (names ? ': ' + names : '') + '\n');
+  process.exit(0);
+}
+
+// D-09: non-interactive → auto-select all
+if (!process.stdin.isTTY) {
+  process.stderr.write('[skills] Non-interactive — auto-selected all ' + skills.length + ' skills\n');
+  // /tmp/skills.json already contains all skills — no rewrite needed
+  process.exit(0);
+}
+
+// SEL-01: interactive prompt (D-01, D-02, D-03, D-04)
+process.stdout.write('\n\x1b[1mAvailable skills:\x1b[0m\n');
+skills.forEach((s, i) => {
+  let desc = s.description ? s.description : '';
+  if (desc.length > 60) desc = desc.slice(0, 60) + '...';
+  const descStr = desc ? ' \x1b[2m— ' + desc + '\x1b[0m' : '';
+  process.stdout.write('  ' + (i + 1) + '. \x1b[1m' + s.name + '\x1b[0m' + descStr + '\n');
+});
+process.stdout.write('\n');
+
+const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+rl.question('Select skills (all / none / 1,3 / Enter = all): ', (answer) => {
+  rl.close();
+  const input = answer.trim().toLowerCase() || 'all'; // D-03: empty = all
+
+  let selected;
+  if (input === 'all') {
+    selected = skills;
+  } else if (input === 'none') {
+    selected = [];
+  } else {
+    // number list
+    selected = input.split(',')
+      .map(s => parseInt(s.trim(), 10) - 1)
+      .filter(i => i >= 0 && i < skills.length)
+      .map(i => skills[i]);
+    // Fallback: try as name list if no valid numbers parsed
+    if (selected.length === 0 && input.match(/[a-z]/)) {
+      selected = filterByNames(input);
+    }
+  }
+
+  fs.writeFileSync('/tmp/skills.json', JSON.stringify(selected));
+  const names = selected.map(s => s.name).join(', ');
+  process.stdout.write('Using ' + selected.length + ' skills' + (names ? ': ' + names : '') + '\n');
+});
+" ARGS="$ARGUMENTS"
+SKILL_COUNT=$(node -e "try{process.stdout.write(String(JSON.parse(require('fs').readFileSync('/tmp/skills.json','utf8')).length))}catch(e){process.stdout.write('0')}" 2>/dev/null)
+```
+
 4. Parse the PR URL/number from arguments
 5. Fetch PR metadata:
 ```bash
