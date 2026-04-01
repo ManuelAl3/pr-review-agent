@@ -2,76 +2,59 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Multi-Framework & Discoverability
-status: verifying
-stopped_at: Completed 11-01-PLAN.md
-last_updated: "2026-04-01T19:29:30.670Z"
+status: complete
+stopped_at: Milestone v1.3 archived
+last_updated: "2026-04-01"
 last_activity: 2026-04-01
 progress:
-  total_phases: 4
-  completed_phases: 2
-  total_plans: 2
-  completed_plans: 2
+  total_phases: 3
+  completed_phases: 3
+  total_plans: 3
+  completed_plans: 3
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-31)
+See: .planning/PROJECT.md (updated 2026-04-01)
 
 **Core value:** The developer gets a complete review-to-resolution cycle without leaving their AI assistant: review a PR, see findings, fix them, and have every fix tracked on GitHub with commit links.
-**Current focus:** Phase 11 — opencode-compatibility
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Phase: 999.1
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: None — v1.3 milestone complete
+Plan: None
+Status: Milestone shipped — ready for `/gsd:new-milestone`
 Last activity: 2026-04-01
 
 ```
-v1.3 Progress [                    ] 0%
-Phase 10 ○  Phase 11 ○  Phase 12 ○
+v1.3 Progress [████████████████████] 100%
+Phase 10 ●  Phase 11 ●  Phase 12 ●
 ```
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 0
-- Average duration: —
-- Total execution time: 0 hours
+- Total plans completed: 3
+- Average duration: ~1 min/plan
+- Total execution time: ~5 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
-
-**Recent Trend (from v1.2):**
-
-| Phase | Duration | Tasks | Files |
-|-------|----------|-------|-------|
-| Phase 07-skill-discovery P01 | 87s | 2 tasks | 1 files |
-| Phase 08-skill-selection P01 | 131s | 2 tasks | 2 files |
-| Phase 09-context-injection P01 | 127s | 2 tasks | 1 files |
-| Phase 10-command-discoverability P01 | 68s | 2 tasks | 1 files |
-| Phase 11-opencode-compatibility P01 | 90s | 2 tasks | 5 files |
+| 10-command-discoverability | 1 | 1 min | 1 min |
+| 11-opencode-compatibility | 1 | 1.5 min | 1.5 min |
+| 12-installer-robustness | 1 | 1 min | 1 min |
 
 ## Accumulated Context
 
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
-
-- [v1.3]: Follow GSD pattern for multi-framework — config-driven detection at install time, not runtime-sniffing
-- [v1.3]: Agents stay as plain markdown with abstract tool names, runtime maps to native implementation
-- [v1.3]: Backlog Phase 999.1 (--help flag) promoted to Phase 10 as DISC-01
-- [Phase 10-command-discoverability]: Step 0 help-flag-check pattern established: intercept --help before any processing in review command
-- [Phase 10-command-discoverability]: argument-hint append-only: [--help] appended at end, original flag order preserved
-- [Phase 11-opencode-compatibility]: Compat blocks use consistent field names (runtime:, status:, degraded:, notes:) across all 5 files
-- [Phase 11-opencode-compatibility]: AskUserQuestion documented as listed-but-not-invoked — no fallback code needed since agents already use bash readline
 
 ### Pending Todos
 
@@ -79,11 +62,10 @@ None.
 
 ### Blockers/Concerns
 
-- Phase 11 planning note: OpenCode tool name exact values are MEDIUM confidence (community source). Verify against opencode.ai/docs/tools/ before writing installer tool map.
-- Phase 11 planning note: `AskUserQuestion` used in review agent interactive flow — must resolve to bash readline approach (already present in Step 1b) or add to tool name map. Choose one explicitly in Phase 11 plan.
+None — milestone complete.
 
 ## Session Continuity
 
-Last session: 2026-04-01T19:26:55.409Z
-Stopped at: Completed 11-01-PLAN.md
+Last session: 2026-04-01
+Stopped at: Milestone v1.3 archived
 Resume file: None
