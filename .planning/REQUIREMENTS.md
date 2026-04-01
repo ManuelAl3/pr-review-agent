@@ -14,9 +14,9 @@ Requirements for skill-aware PR review. Each maps to roadmap phases.
 
 ### Skill Selection
 
-- [ ] **SEL-01**: Interactive prompt lets developer choose "all skills" or select specific ones before review runs
-- [ ] **SEL-02**: `--skills` flag for non-interactive mode (`--skills all`, `--skills none`, `--skills name1,name2`)
-- [ ] **SEL-03**: No prompt shown when project has zero skills (review continues normally)
+- [x] **SEL-01**: Interactive prompt lets developer choose "all skills" or select specific ones before review runs
+- [x] **SEL-02**: `--skills` flag for non-interactive mode (`--skills all`, `--skills none`, `--skills name1,name2`)
+- [x] **SEL-03**: No prompt shown when project has zero skills (review continues normally)
 
 ### Context Injection
 
@@ -49,9 +49,9 @@ Requirements for skill-aware PR review. Each maps to roadmap phases.
 |-------------|-------|--------|
 | SKILL-01 | Phase 7 | Complete |
 | SKILL-02 | Phase 7 | Complete |
-| SEL-01 | Phase 8 | Pending |
-| SEL-02 | Phase 8 | Pending |
-| SEL-03 | Phase 8 | Pending |
+| SEL-01 | Phase 8 | Complete |
+| SEL-02 | Phase 8 | Complete |
+| SEL-03 | Phase 8 | Complete |
 | CTX-01 | Phase 9 | Pending |
 | CTX-02 | Phase 9 | Pending |
 

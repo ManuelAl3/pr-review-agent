@@ -108,7 +108,7 @@ Plans:
 ## Phase Checklist
 
 - [x] **Phase 7: Skill Discovery** - Scan project skill directories, parse frontmatter, deduplicate by name (completed 2026-04-01)
-- [ ] **Phase 8: Skill Selection** - Interactive prompt and --skills flag so the developer chooses which skills apply
+- [x] **Phase 8: Skill Selection** - Interactive prompt and --skills flag so the developer chooses which skills apply (completed 2026-04-01)
 - [ ] **Phase 9: Context Injection** - Inject selected skill content as mandatory review criteria and record used skills in config.json
 
 ## Phase Details
@@ -136,10 +136,10 @@ Plans:
   2. Passing `--skills all` skips the interactive prompt and selects all discovered skills; `--skills none` skips all skills; `--skills name1,name2` selects specific skills by name
   3. When no skills are found in the project, no prompt is shown and the review continues exactly as it did before v1.2
   4. In a non-interactive environment (piped stdin / CI), the agent auto-selects all skills and logs the decision rather than hanging on a prompt
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 08-01-PLAN.md — Add Step 1b skill selection logic to pr-reviewer.md and update review.md argument-hint
+- [x] 08-01-PLAN.md — Add Step 1b skill selection logic to pr-reviewer.md and update review.md argument-hint
 
 ### Phase 9: Context Injection
 **Goal**: Selected skill content is treated as mandatory review criteria alongside REVIEW-PLAN.md, and the skills used are recorded for traceability
@@ -166,5 +166,5 @@ Phases execute in numeric order: 7 -> 8 -> 9
 | 5. GitHub Bridge | v1.1 | 2/2 | Complete | 2026-03-31 |
 | 6. Review Agent Inline Comments | v1.1 | 1/1 | Complete | 2026-03-31 |
 | 7. Skill Discovery | v1.2 | 1/1 | Complete   | 2026-04-01 |
-| 8. Skill Selection | v1.2 | 0/1 | Planning complete | - |
+| 8. Skill Selection | v1.2 | 1/1 | Complete   | 2026-04-01 |
 | 9. Context Injection | v1.2 | 0/? | Not started | - |

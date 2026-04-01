@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Skill-Aware PR Review
 status: verifying
-stopped_at: Phase 8 context gathered
-last_updated: "2026-04-01T02:04:59.735Z"
+stopped_at: Completed 08-01-PLAN.md
+last_updated: "2026-04-01T02:34:13.795Z"
 last_activity: 2026-04-01
 progress:
   total_phases: 3
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  completed_phases: 2
+  total_plans: 2
+  completed_plans: 2
   percent: 0
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-31)
 
 **Core value:** The developer gets a complete review-to-resolution cycle without leaving their AI assistant: review a PR, see findings, fix them, and have every fix tracked on GitHub with commit links.
-**Current focus:** Phase 07 — skill-discovery
+**Current focus:** Phase 08 — skill-selection
 
 ## Current Position
 
-Phase: 8
-Plan: Not started
+Phase: 08 (skill-selection) — EXECUTING
+Plan: 1 of 1
 Status: Phase complete — ready for verification
 Last activity: 2026-04-01
 
@@ -53,6 +53,7 @@ Progress: [░░░░░░░░░░] 0%
 
 *Updated after each plan completion*
 | Phase 07-skill-discovery P01 | 87s | 2 tasks | 1 files |
+| Phase 08-skill-selection P01 | 131s | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -68,6 +69,9 @@ Recent decisions affecting current work:
 - [v1.2 Roadmap]: Require explicit user selection before any skill content is injected (OWASP LLM01:2025 prompt injection guard)
 - [Phase 07-01]: Use process.cwd() as anchor for all four skill dirs (not path.dirname(PR_REVIEW_DIR)) — correct for both local and global installs
 - [Phase 07-01]: Store relDir string as source field (not path.join result) to avoid Windows backslash in display values
+- [Phase 08-01]: Use readline.createInterface for interactive TTY prompt instead of AskUserQuestion (D-01)
+- [Phase 08-01]: Flag parsing in agent layer (pr-reviewer.md), not command layer (review.md) — consistent with existing --post/--focus pattern (D-05)
+- [Phase 08-01]: No 2>/dev/null on Step 1b node call so D-10 stderr messages reach the user
 
 ### Pending Todos
 
@@ -81,6 +85,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-01T02:04:59.730Z
-Stopped at: Phase 8 context gathered
-Resume file: .planning/phases/08-skill-selection/08-CONTEXT.md
+Last session: 2026-04-01T02:34:13.790Z
+Stopped at: Completed 08-01-PLAN.md
+Resume file: None
