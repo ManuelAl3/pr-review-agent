@@ -357,7 +357,39 @@ gh api repos/{OWNER/REPO}/pulls/{PR_NUMBER}/files --paginate --jq '.[] | select(
 Write the findings array to `$PR_REVIEW_DIR/findings.json`. Each finding MUST have all 10 fields: `file`, `line`, `severity`, `category`, `title`, `body`, `snippet`, `status`, `commitHash`, `commentId`. Never omit `snippet` — every finding needs a code reference showing the issue or the fix. For all new findings, set `status: "pending"`, `commitHash: null`, `commentId: null`.
 
 ### 3b. Update config.json
-Write/update `$PR_REVIEW_DIR/config.json` with PR metadata and category definitions.
+Write/update `$PR_REVIEW_DIR/config.json` with PR metadata, category definitions, and active skill names.
+
+Per D-07/D-08: include a `skills` field — a simple array of skill name strings. When no skills are selected, `skills` is an empty array `[]`.
+
+```bash
+# Read selected skill names for config.json traceability (CTX-02)
+node -e "
+const fs = require('fs');
+
+// Per D-09: read /tmp/skills.json for skill names
+let skillNames = [];
+try {
+  const skills = JSON.parse(fs.readFileSync('/tmp/skills.json', 'utf8'));
+  skillNames = skills.map(s => s.name);
+} catch(e) {
+  skillNames = []; // Per D-08: safe default — empty array
+}
+
+// Write skill names to temp file for inclusion in config.json
+fs.writeFileSync('/tmp/skill_names.json', JSON.stringify(skillNames));
+process.stdout.write('Active skills for config.json: ' + skillNames.length + '\n');
+"
+```
+
+When writing config.json, include the `skills` field from `/tmp/skill_names.json`:
+
+```javascript
+// In the config.json write block, add:
+const skillNames = JSON.parse(fs.readFileSync('/tmp/skill_names.json', 'utf8'));
+// Add to config object:
+config.skills = skillNames;
+// e.g., { pr: { ... }, categories: { ... }, skills: ["design-tokens", "i18n-patterns"] }
+```
 
 The HTML template (`$PR_REVIEW_DIR/index.html`) loads data dynamically from these JSON files via `fetch()`.
 
@@ -727,4 +759,6 @@ Fallback: [FALLBACK_COUNT] findings added to review body (lines outside diff)
 - [ ] Inline comments posted to PR on correct diff lines (if --post flag)
 - [ ] All findings submitted as single batched review (if --post flag)
 - [ ] commentId stored in findings.json for each posted finding (if --post flag)
+- [ ] Active Skills Context block output with selected skill content (if skills selected)
+- [ ] config.json includes `skills` array with names of active skills
 </success_criteria>
