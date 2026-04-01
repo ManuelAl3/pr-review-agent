@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Skill-Aware PR Review
-status: planning
-stopped_at: Phase 7 context gathered
-last_updated: "2026-04-01T00:38:37.900Z"
-last_activity: 2026-03-31 — Roadmap created for v1.2 (Phases 7-9)
+status: verifying
+stopped_at: Completed 07-01-PLAN.md
+last_updated: "2026-04-01T01:13:08.864Z"
+last_activity: 2026-04-01
 progress:
   total_phases: 3
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-31)
 
 **Core value:** The developer gets a complete review-to-resolution cycle without leaving their AI assistant: review a PR, see findings, fix them, and have every fix tracked on GitHub with commit links.
-**Current focus:** Milestone v1.2 — Skill-Aware PR Review (Phase 7: Skill Discovery)
+**Current focus:** Phase 07 — skill-discovery
 
 ## Current Position
 
-Phase: 7 of 9 (Skill Discovery)
-Plan: — (not yet planned)
-Status: Ready to plan
-Last activity: 2026-03-31 — Roadmap created for v1.2 (Phases 7-9)
+Phase: 07 (skill-discovery) — EXECUTING
+Plan: 1 of 1
+Status: Phase complete — ready for verification
+Last activity: 2026-04-01
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -52,6 +52,7 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 07-skill-discovery P01 | 87s | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -65,6 +66,8 @@ Recent decisions affecting current work:
 - [v1.2 Roadmap]: Derive skill paths from already-resolved PR_REVIEW_DIR, never from raw `__CONFIG_DIR__` literal (install-time placeholder, not runtime)
 - [v1.2 Roadmap]: Use `path.join()` throughout for Windows cross-platform safety (repo runs on win32)
 - [v1.2 Roadmap]: Require explicit user selection before any skill content is injected (OWASP LLM01:2025 prompt injection guard)
+- [Phase 07-01]: Use process.cwd() as anchor for all four skill dirs (not path.dirname(PR_REVIEW_DIR)) — correct for both local and global installs
+- [Phase 07-01]: Store relDir string as source field (not path.join result) to avoid Windows backslash in display values
 
 ### Pending Todos
 
@@ -78,6 +81,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-01T00:38:37.895Z
-Stopped at: Phase 7 context gathered
-Resume file: .planning/phases/07-skill-discovery/07-CONTEXT.md
+Last session: 2026-04-01T01:13:08.859Z
+Stopped at: Completed 07-01-PLAN.md
+Resume file: None

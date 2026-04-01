@@ -1,110 +1,65 @@
-# Requirements: PR Review Agent
+# Requirements: PR Review Agent v1.2
 
-**Defined:** 2026-03-30
+**Defined:** 2026-03-31
 **Core Value:** The developer gets a complete review-to-resolution cycle without leaving their AI assistant: review a PR, see findings, fix them, and have every fix tracked on GitHub with commit links.
 
-## v1 Requirements
+## v1.2 Requirements
 
-Requirements for the fix/resolution milestone. Each maps to roadmap phases.
+Requirements for skill-aware PR review. Each maps to roadmap phases.
 
-### Schema
+### Skill Discovery
 
-- [x] **SCHEMA-01**: Findings JSON gains `status` field ("pending" | "resolved") defaulting to "pending"
-- [x] **SCHEMA-02**: Findings JSON gains `commitHash` field (string | null) storing the fix commit SHA
-- [x] **SCHEMA-03**: Findings JSON gains `commentId` field (number | null) storing the GitHub inline comment ID
-- [x] **SCHEMA-04**: Existing findings.json files without new fields are handled gracefully (missing = pending/null)
+- [x] **SKILL-01**: Review agent detects skill files from the project's working directory (scans `.claude/skills/`, `.opencode/skills/`, `.agents/skills/` — whichever exist)
+- [x] **SKILL-02**: Agent parses SKILL.md frontmatter (name + description) with graceful fallback when frontmatter is missing
 
-### Fix Agent
+### Skill Selection
 
-- [x] **FIX-01**: Fix agent auto-checkouts PR branch via `gh pr checkout` before applying any fixes
-- [x] **FIX-02**: Fix agent detects dirty working tree and warns user before switching branches
-- [x] **FIX-03**: Fix agent creates one commit per finding with message format `fix(review): [title]`
-- [x] **FIX-04**: Fix agent locates code by searching snippet content, not relying on line numbers
-- [x] **FIX-05**: Fix agent finds reference implementations in codebase before applying pattern-based fixes
-- [x] **FIX-06**: Fix agent pushes all commits to PR branch after all fixes are applied (single push)
-- [x] **FIX-07**: Fix agent detects fork PRs (`isCrossRepository`) and skips push with clear warning
-- [x] **FIX-08**: Fix agent updates `status` to "resolved" and stores `commitHash` in findings.json after each fix
-- [x] **FIX-09**: Fix agent supports filter flags: `--all`, `--only N`, `--severity X`, `--category X`
-- [x] **FIX-10**: Fix agent skips findings already marked as "resolved" (idempotent re-runs)
+- [ ] **SEL-01**: Interactive prompt lets developer choose "all skills" or select specific ones before review runs
+- [ ] **SEL-02**: `--skills` flag for non-interactive mode (`--skills all`, `--skills none`, `--skills name1,name2`)
+- [ ] **SEL-03**: No prompt shown when project has zero skills (review continues normally)
 
-### GitHub Integration
+### Context Injection
 
-- [x] **GH-01**: Review agent posts findings as inline code review comments on specific diff lines via `gh api` (not `gh pr comment`)
-- [x] **GH-02**: Review agent submits all comments as a single review (batch, one API call with `comments[]` array)
-- [x] **GH-03**: Review agent stores `commentId` per finding in findings.json after posting
-- [x] **GH-04**: Fix agent replies to each inline comment thread with "Fixed in \`<commit-hash>\`" linking the commit
-- [x] **GH-05**: Fix agent handles 422 errors (line outside diff) with fallback to general PR comment
+- [ ] **CTX-01**: Selected skill content is injected as mandatory review criteria alongside REVIEW-PLAN.md
+- [ ] **CTX-02**: Selected skills are recorded in config.json for traceability in the review output
 
-### HTML UI
+## Future Requirements
 
-- [x] **UI-01**: Resolved findings display green "Resolved" badge
-- [x] **UI-02**: Resolved findings are visually dimmed (reduced opacity + strikethrough on title)
-- [x] **UI-03**: User can filter findings to show pending only, resolved only, or all
-- [x] **UI-04**: Resolved findings display clickable commit hash linking to the commit on GitHub
-- [x] **UI-05**: Review agent auto-starts preview server and prints URL after generating findings
+### Global Skills
 
-## v2 Requirements
+- **GSKILL-01**: Scan global skill directories (~/.claude/skills/, ~/.config/opencode/skills/) in addition to project-local
 
-Deferred to future release. Tracked but not in current roadmap.
+### Advanced Selection
 
-### Developer Experience
-
-- **DX-01**: Dry-run/preview mode — show what fixes would be applied without changing code
-- **DX-02**: Fix confidence score — agent rates how confident it is in each fix
-- **DX-03**: Undo fix — revert a specific finding's commit
-
-### Advanced GitHub
-
-- **AGH-01**: Resolve GitHub review threads automatically after fix (mark as "resolved" on GitHub)
-- **AGH-02**: Re-review after fix — run review again on only the changed files to verify fixes
+- **ASEL-01**: Skill content truncation for oversized skill files (500-line cap)
+- **ASEL-02**: Skill source path display in selection prompt for trust visibility
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Auto-merge PRs | Human reviewer decides when to merge — safety boundary |
-| GitHub App / OAuth | `gh` CLI handles auth; adding OAuth adds complexity and a dependency |
-| CI/CD integration | Developer tool, not a pipeline step |
-| Generic fixes without codebase context | Anti-feature: CodeRabbit/Copilot already do this poorly. Our value is project-pattern-aware fixes |
-| Multi-language locale file generation | Agent suggests i18n keys, doesn't create .json translation files |
-| Real-time collaboration | Single developer workflow |
+| Global skills (~/.claude/skills/) | Only project-local for now — review should use project-relevant skills |
+| Auto-selection by file type | Anti-feature — breaks constantly, surprises developers |
+| Skill content truncation | Defer until real-world usage shows it's needed |
+| Monorepo nested skill discovery | Claude Code runtime behavior, not agent responsibility |
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCHEMA-01 | Phase 1 | Complete |
-| SCHEMA-02 | Phase 1 | Complete |
-| SCHEMA-03 | Phase 1 | Complete |
-| SCHEMA-04 | Phase 1 | Complete |
-| UI-01 | Phase 2 | Complete |
-| UI-02 | Phase 2 | Complete |
-| UI-03 | Phase 2 | Complete |
-| UI-04 | Phase 2 | Complete |
-| UI-05 | Phase 2 | Complete |
-| FIX-01 | Phase 3 | Complete |
-| FIX-02 | Phase 3 | Complete |
-| FIX-07 | Phase 3 | Complete |
-| FIX-03 | Phase 4 | Complete |
-| FIX-04 | Phase 4 | Complete |
-| FIX-05 | Phase 4 | Complete |
-| FIX-08 | Phase 4 | Complete |
-| FIX-09 | Phase 4 | Complete |
-| FIX-10 | Phase 4 | Complete |
-| FIX-06 | Phase 5 | Complete |
-| GH-04 | Phase 5 | Complete |
-| GH-05 | Phase 5 | Complete |
-| GH-01 | Phase 6 | Complete |
-| GH-02 | Phase 6 | Complete |
-| GH-03 | Phase 6 | Complete |
+| SKILL-01 | Phase 7 | Complete |
+| SKILL-02 | Phase 7 | Complete |
+| SEL-01 | Phase 8 | Pending |
+| SEL-02 | Phase 8 | Pending |
+| SEL-03 | Phase 8 | Pending |
+| CTX-01 | Phase 9 | Pending |
+| CTX-02 | Phase 9 | Pending |
 
 **Coverage:**
-- v1 requirements: 24 total
-- Mapped to phases: 24
+- v1.2 requirements: 7 total
+- Mapped to phases: 7
 - Unmapped: 0
 
 ---
-*Requirements defined: 2026-03-30*
-*Last updated: 2026-03-30 after roadmap creation*
+*Requirements defined: 2026-03-31*
+*Last updated: 2026-03-31 after roadmap creation*

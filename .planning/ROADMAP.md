@@ -107,7 +107,7 @@ Plans:
 
 ## Phase Checklist
 
-- [ ] **Phase 7: Skill Discovery** - Scan project skill directories, parse frontmatter, deduplicate by name
+- [x] **Phase 7: Skill Discovery** - Scan project skill directories, parse frontmatter, deduplicate by name (completed 2026-04-01)
 - [ ] **Phase 8: Skill Selection** - Interactive prompt and --skills flag so the developer chooses which skills apply
 - [ ] **Phase 9: Context Injection** - Inject selected skill content as mandatory review criteria and record used skills in config.json
 
@@ -122,10 +122,10 @@ Plans:
   2. Each discovered skill is parsed for its `name` and `description` frontmatter fields; a skill file with no frontmatter is still included using the directory name as fallback
   3. Running a review on a project with no skill directories or no SKILL.md files completes normally with no skill-related output or prompts
   4. Skills appearing in multiple directories are deduplicated by `name` field; only the first occurrence (by priority order) is retained
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 07-01-PLAN.md — Add skill discovery sub-step to review agent Step 1
+- [x] 07-01-PLAN.md — Add skill discovery sub-step to review agent Step 1
 
 ### Phase 8: Skill Selection
 **Goal**: The developer explicitly chooses which skills apply before the review analysis runs
@@ -162,6 +162,6 @@ Phases execute in numeric order: 7 → 8 → 9
 | 4. Fix Engine | v1.1 | 2/2 | Complete | 2026-03-31 |
 | 5. GitHub Bridge | v1.1 | 2/2 | Complete | 2026-03-31 |
 | 6. Review Agent Inline Comments | v1.1 | 1/1 | Complete | 2026-03-31 |
-| 7. Skill Discovery | v1.2 | 0/1 | Planning | - |
+| 7. Skill Discovery | v1.2 | 1/1 | Complete   | 2026-04-01 |
 | 8. Skill Selection | v1.2 | 0/? | Not started | - |
 | 9. Context Injection | v1.2 | 0/? | Not started | - |
