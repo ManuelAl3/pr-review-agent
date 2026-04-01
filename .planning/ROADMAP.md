@@ -1,25 +1,14 @@
-# Roadmap: PR Review Agent — Fix/Resolution Milestone
+# Roadmap: PR Review Agent
 
-## Overview
+## Milestones
 
-This milestone extends the existing working PR review tool with a complete fix-and-close-the-loop cycle. Starting from the shared schema contract, the build proceeds layer by layer: UI first (isolated, testable with synthetic data), then git safety (checkout, dirty-tree guard, fork detection), then the commit loop (one commit per finding, SHA capture, idempotency), then external side effects (push + GitHub thread replies), and finally inline review comment posting from the review agent. Each phase is independently verifiable before the next begins.
+- ✅ **v1.1 Fix/Resolution** - Phases 1-6 (shipped 2026-03-31)
+- 🚧 **v1.2 Skill-Aware PR Review** - Phases 7-9 (in progress)
 
 ## Phases
 
-**Phase Numbering:**
-- Integer phases (1, 2, 3): Planned milestone work
-- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
-
-Decimal phases appear between their surrounding integers in numeric order.
-
-- [x] **Phase 1: Schema Foundation** - Extend findings.json with status, commitHash, and commentId fields (completed 2026-03-30)
-- [x] **Phase 2: UI Resolution Display** - Show resolved state in the HTML UI with badges, dimming, and filtering (completed 2026-03-31)
-- [x] **Phase 3: Git Context** - Auto-checkout PR branch, guard against dirty tree and fork PRs (completed 2026-03-31)
-- [x] **Phase 4: Fix Engine** - Per-finding commit loop with SHA capture and idempotent re-runs (completed 2026-03-31)
-- [x] **Phase 5: GitHub Bridge** - Push commits to PR branch and reply to inline comment threads (completed 2026-03-31)
-- [x] **Phase 6: Review Agent Inline Comments** - Post findings as line-anchored GitHub review comments (completed 2026-03-31)
-
-## Phase Details
+<details>
+<summary>✅ v1.1 Fix/Resolution (Phases 1-6) - SHIPPED 2026-03-31</summary>
 
 ### Phase 1: Schema Foundation
 **Goal**: The findings.json contract is extended with three new fields that all downstream components depend on
@@ -108,18 +97,71 @@ Plans:
 **Plans:** 1/1 plans complete
 
 Plans:
-- [x] 06-01-PLAN.md -- Expand Step 4 with inline comment posting (hunk parsing, dedup, batch review, comment ID retrieval)� Expand Step 4 with inline comment posting (hunk parsing, dedup, batch review, comment ID retrieval)
+- [x] 06-01-PLAN.md — Expand Step 4 with inline comment posting (hunk parsing, dedup, batch review, comment ID retrieval)
+
+</details>
+
+### 🚧 v1.2 Skill-Aware PR Review (In Progress)
+
+**Milestone Goal:** Let developers select which project skills inform the PR review analysis, with multi-framework support across Claude Code, OpenCode, and generic agent directories.
+
+## Phase Checklist
+
+- [ ] **Phase 7: Skill Discovery** - Scan project skill directories, parse frontmatter, deduplicate by name
+- [ ] **Phase 8: Skill Selection** - Interactive prompt and --skills flag so the developer chooses which skills apply
+- [ ] **Phase 9: Context Injection** - Inject selected skill content as mandatory review criteria and record used skills in config.json
+
+## Phase Details
+
+### Phase 7: Skill Discovery
+**Goal**: The review agent silently detects all skill files in the project's skill directories before any review begins
+**Depends on**: Phase 6
+**Requirements**: SKILL-01, SKILL-02
+**Success Criteria** (what must be TRUE):
+  1. Running a review on a project with skills in `.claude/skills/`, `.opencode/skills/`, or `.agents/skills/` discovers all skill files without any manual configuration
+  2. Each discovered skill is parsed for its `name` and `description` frontmatter fields; a skill file with no frontmatter is still included using the directory name as fallback
+  3. Running a review on a project with no skill directories or no SKILL.md files completes normally with no skill-related output or prompts
+  4. Skills appearing in multiple directories are deduplicated by `name` field; only the first occurrence (by priority order) is retained
+**Plans:** 1 plan
+
+Plans:
+- [ ] 07-01-PLAN.md — Add skill discovery sub-step to review agent Step 1
+
+### Phase 8: Skill Selection
+**Goal**: The developer explicitly chooses which skills apply before the review analysis runs
+**Depends on**: Phase 7
+**Requirements**: SEL-01, SEL-02, SEL-03
+**Success Criteria** (what must be TRUE):
+  1. When skills are found, a numbered list of skill names and descriptions is presented and the developer can type `all`, a comma-separated list of numbers, or `none` to control which skills are active
+  2. Passing `--skills all` skips the interactive prompt and selects all discovered skills; `--skills none` skips all skills; `--skills name1,name2` selects specific skills by name
+  3. When no skills are found in the project, no prompt is shown and the review continues exactly as it did before v1.2
+  4. In a non-interactive environment (piped stdin / CI), the agent auto-selects all skills and logs the decision rather than hanging on a prompt
+**Plans**: TBD
+
+### Phase 9: Context Injection
+**Goal**: Selected skill content is treated as mandatory review criteria alongside REVIEW-PLAN.md, and the skills used are recorded for traceability
+**Depends on**: Phase 8
+**Requirements**: CTX-01, CTX-02
+**Success Criteria** (what must be TRUE):
+  1. A PR review run with skills selected produces findings that enforce skill-defined patterns — violations caught by a skill rule appear in findings.json with the same schema as REVIEW-PLAN.md findings
+  2. The full content of each selected skill file is injected into the review context under a clearly labeled `## Active Skills Context` block that the agent treats as mandatory criteria
+  3. After the review completes, config.json includes a `skills` field listing the names of all skills that were active during that review
+  4. A PR review run with no skills selected produces identical output to a pre-v1.2 review (no skills block, no `skills` field in config.json beyond an empty array)
+**Plans**: TBD
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
+Phases execute in numeric order: 7 → 8 → 9
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Schema Foundation | 2/2 | Complete   | 2026-03-30 |
-| 2. UI Resolution Display | 2/2 | Complete   | 2026-03-31 |
-| 3. Git Context | 1/1 | Complete   | 2026-03-31 |
-| 4. Fix Engine | 2/2 | Complete   | 2026-03-31 |
-| 5. GitHub Bridge | 2/2 | Complete   | 2026-03-31 |
-| 6. Review Agent Inline Comments | 1/1 | Complete   | 2026-03-31 |
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1. Schema Foundation | v1.1 | 2/2 | Complete | 2026-03-30 |
+| 2. UI Resolution Display | v1.1 | 2/2 | Complete | 2026-03-31 |
+| 3. Git Context | v1.1 | 1/1 | Complete | 2026-03-31 |
+| 4. Fix Engine | v1.1 | 2/2 | Complete | 2026-03-31 |
+| 5. GitHub Bridge | v1.1 | 2/2 | Complete | 2026-03-31 |
+| 6. Review Agent Inline Comments | v1.1 | 1/1 | Complete | 2026-03-31 |
+| 7. Skill Discovery | v1.2 | 0/1 | Planning | - |
+| 8. Skill Selection | v1.2 | 0/? | Not started | - |
+| 9. Context Injection | v1.2 | 0/? | Not started | - |

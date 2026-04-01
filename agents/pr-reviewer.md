@@ -81,7 +81,81 @@ If neither exists, inform user to run the installer: `npx pr-review-agent`
 
 1. Read CLAUDE.md (or project instructions) for project rules
 2. Read ./REVIEW-PLAN.md for checklist. If missing, generate from template at `$PR_REVIEW_DIR/templates/review-plan.md`
-3. Read any project skills for architectural patterns
+3. Discover project skills (SKILL-01, SKILL-02):
+```bash
+# Discover project skills (SKILL-01, SKILL-02)
+SKILLS_JSON=$(node -e "
+const fs = require('fs');
+const path = require('path');
+
+const SKILL_DIRS = [
+  '.claude/skills',
+  '.opencode/skills',
+  '.agents/skills',
+  '.config/opencode/skills'
+];
+
+const skills = [];
+const seenNames = new Set();
+const projectRoot = process.cwd();
+
+for (const relDir of SKILL_DIRS) {
+  const absDir = path.join(projectRoot, relDir);
+  if (!fs.existsSync(absDir)) continue;
+
+  let entries;
+  try {
+    entries = fs.readdirSync(absDir, { withFileTypes: true });
+  } catch (e) {
+    continue;
+  }
+
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+
+    const skillFile = path.join(absDir, entry.name, 'SKILL.md');
+    if (!fs.existsSync(skillFile)) continue;
+
+    let content;
+    try {
+      content = fs.readFileSync(skillFile, 'utf8');
+    } catch (e) {
+      continue;
+    }
+
+    const fm = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    let name = entry.name;
+    let description = '';
+    if (fm) {
+      const nmatch = fm[1].match(/^name:\s*(.+?)$/m);
+      const dmatch = fm[1].match(/^description:\s*(.+?)$/m);
+      if (nmatch) {
+        const raw = nmatch[1].trim();
+        name = ((raw.startsWith(\"'\") && raw.endsWith(\"'\")) || (raw.startsWith('\"') && raw.endsWith('\"')))
+          ? raw.slice(1, -1) : raw;
+      }
+      if (dmatch) {
+        const raw = dmatch[1].trim();
+        description = ((raw.startsWith(\"'\") && raw.endsWith(\"'\")) || (raw.startsWith('\"') && raw.endsWith('\"')))
+          ? raw.slice(1, -1) : raw;
+      }
+    }
+
+    if (seenNames.has(name)) continue;
+    seenNames.add(name);
+
+    skills.push({ name, description, path: skillFile, source: relDir });
+  }
+}
+
+process.stdout.write(JSON.stringify(skills));
+" 2>/dev/null)
+echo "$SKILLS_JSON" > /tmp/skills.json
+SKILL_COUNT=$(node -e "try{process.stdout.write(String(JSON.parse(require('fs').readFileSync('/tmp/skills.json','utf8')).length))}catch(e){process.stdout.write('0')}" 2>/dev/null)
+```
+
+If `SKILL_COUNT` is greater than 0, skills are available for selection in Phase 8. If 0, no skill-related output is shown.
+
 4. Parse the PR URL/number from arguments
 5. Fetch PR metadata:
 ```bash
