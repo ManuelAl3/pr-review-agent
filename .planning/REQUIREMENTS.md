@@ -14,8 +14,8 @@ Requirements for multi-framework support and discoverability. Each maps to roadm
 
 ### Runtime Compatibility
 
-- [ ] **RTCOMPAT-01**: Agent and command files work on OpenCode without modification (PascalCase tool names auto-map, frontmatter parses correctly)
-- [ ] **RTCOMPAT-02**: Runtime differences are documented inline in agent files via compatibility blocks (what works, what degrades, fallback behavior)
+- [x] **RTCOMPAT-01**: Agent and command files work on OpenCode without modification (PascalCase tool names auto-map, frontmatter parses correctly)
+- [x] **RTCOMPAT-02**: Runtime differences are documented inline in agent files via compatibility blocks (what works, what degrades, fallback behavior)
 - [ ] **RTCOMPAT-03**: Installer cleans stale agent/command files on re-install while preserving user data (`findings.json`, `config.json`, `REVIEW-PLAN.md`)
 
 ## Future Requirements
@@ -42,8 +42,8 @@ Requirements for multi-framework support and discoverability. Each maps to roadm
 |-------------|-------|--------|
 | DISC-01 | Phase 10 | Complete |
 | DISC-02 | Phase 10 | Complete |
-| RTCOMPAT-01 | Phase 11 | Pending |
-| RTCOMPAT-02 | Phase 11 | Pending |
+| RTCOMPAT-01 | Phase 11 | Complete |
+| RTCOMPAT-02 | Phase 11 | Complete |
 | RTCOMPAT-03 | Phase 12 | Pending |
 
 **Coverage:**

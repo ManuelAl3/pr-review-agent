@@ -32,7 +32,7 @@
 ### v1.3 Multi-Framework & Discoverability (Phases 10-12)
 
 - [x] **Phase 10: Command Discoverability** - `--help` flag and updated argument-hint on the review command (completed 2026-04-01)
-- [ ] **Phase 11: OpenCode Compatibility** - Audit agent/command tool names and document runtime differences inline
+- [x] **Phase 11: OpenCode Compatibility** - Audit agent/command tool names and document runtime differences inline (completed 2026-04-01)
 - [ ] **Phase 12: Installer Robustness** - Clean stale agent/command files on re-install while preserving user data
 
 ## Phase Details
@@ -58,9 +58,9 @@ Plans:
   2. Each agent file contains a compatibility block stating what works on Claude Code, what works on OpenCode, and what degrades with what fallback
   3. A user installing on OpenCode can run `/pr-review:review <pr-url>` without hitting a tool-grant failure caused by tool name mismatches
   4. The compatibility blocks are readable inline without opening any external docs
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
-- [ ] 11-01-PLAN.md — Add runtime-compat blocks to all agent and command files
+- [x] 11-01-PLAN.md — Add runtime-compat blocks to all agent and command files
 
 ### Phase 12: Installer Robustness
 **Goal**: Re-installing over an existing installation never leaves stale agent or command files from previous versions
@@ -86,7 +86,7 @@ Plans:
 | 8. Skill Selection | v1.2 | 1/1 | Complete | 2026-04-01 |
 | 9. Context Injection | v1.2 | 1/1 | Complete | 2026-04-01 |
 | 10. Command Discoverability | v1.3 | 1/1 | Complete    | 2026-04-01 |
-| 11. OpenCode Compatibility | v1.3 | 0/1 | Not started | - |
+| 11. OpenCode Compatibility | v1.3 | 1/1 | Complete   | 2026-04-01 |
 | 12. Installer Robustness | v1.3 | 0/? | Not started | - |
 
 ## Backlog
