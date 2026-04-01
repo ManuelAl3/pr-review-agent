@@ -1,7 +1,7 @@
 ---
 name: pr-review:review
 description: Analyze a GitHub PR against project architectural patterns and generate an interactive review preview. Posts comments to GitHub optionally.
-argument-hint: "<pr-url-or-number> [--post] [--focus security|i18n|architecture|design-tokens|all]"
+argument-hint: "<pr-url-or-number> [--post] [--focus security|i18n|architecture|design-tokens|all] [--skills all|none|name1,name2]"
 allowed-tools:
   - Read
   - Write
