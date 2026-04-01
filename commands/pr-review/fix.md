@@ -13,6 +13,17 @@ allowed-tools:
 agent: pr-fixer
 ---
 
+<!-- runtime-compat
+runtime: claude-code
+  status: full
+  notes: allowed-tools enforced, argument-hint displayed in TUI, AskUserQuestion available.
+runtime: opencode
+  status: partial
+  degraded: allowed-tools ignored, argument-hint not displayed, AskUserQuestion not available
+  notes: agent: delegation works. Tool permissions via opencode.json instead.
+         AskUserQuestion listed in allowed-tools but not invoked by the agent.
+-->
+
 <objective>
 Apply fixes from a previous PR review directly to the codebase. Reads the structured
 findings from findings.json and corrects each issue in the actual source code, following

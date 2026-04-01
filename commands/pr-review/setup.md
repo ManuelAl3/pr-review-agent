@@ -10,6 +10,17 @@ allowed-tools:
   - AskUserQuestion
 ---
 
+<!-- runtime-compat
+runtime: claude-code
+  status: full
+  notes: allowed-tools enforced, AskUserQuestion available.
+runtime: opencode
+  status: partial
+  degraded: allowed-tools ignored, AskUserQuestion not available
+  notes: No agent: field — runs inline. Tool permissions via opencode.json instead.
+         AskUserQuestion listed in allowed-tools but setup uses bash readline if needed.
+-->
+
 <objective>
 Set up PR review for the current project. Generates a REVIEW-PLAN.md at the project
 root with review criteria tailored to the project's stack and patterns.

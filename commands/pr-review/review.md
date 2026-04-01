@@ -12,6 +12,17 @@ allowed-tools:
 agent: pr-reviewer
 ---
 
+<!-- runtime-compat
+runtime: claude-code
+  status: full
+  notes: allowed-tools enforced, argument-hint displayed in TUI, AskUserQuestion available.
+runtime: opencode
+  status: partial
+  degraded: allowed-tools ignored, argument-hint not displayed, AskUserQuestion not available
+  notes: agent: delegation works. Tool permissions via opencode.json instead.
+         AskUserQuestion listed in allowed-tools but not invoked by the agent; bash readline used.
+-->
+
 <objective>
 Perform a comprehensive code review on a GitHub pull request by analyzing diffs against
 project-specific conventions defined in project instructions, skills, and ./REVIEW-PLAN.md.
