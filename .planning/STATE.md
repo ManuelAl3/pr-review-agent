@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.2
-milestone_name: Skill-Aware PR Review
+milestone: v1.3
+milestone_name: Multi-Framework & Discoverability
 status: verifying
-stopped_at: Completed 09-01-PLAN.md
-last_updated: "2026-04-01T03:23:31.645Z"
+stopped_at: Completed 10-01-PLAN.md
+last_updated: "2026-04-01T05:59:08.285Z"
 last_activity: 2026-04-01
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 3
-  completed_plans: 3
-  percent: 0
+  total_phases: 4
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
 ---
 
 # Project State
@@ -21,16 +20,19 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-31)
 
 **Core value:** The developer gets a complete review-to-resolution cycle without leaving their AI assistant: review a PR, see findings, fix them, and have every fix tracked on GitHub with commit links.
-**Current focus:** Phase 09 — context-injection
+**Current focus:** Phase 10 — command-discoverability
 
 ## Current Position
 
-Phase: 09
+Phase: 999.1
 Plan: Not started
 Status: Phase complete — ready for verification
 Last activity: 2026-04-01
 
-Progress: [░░░░░░░░░░] 0%
+```
+v1.3 Progress [                    ] 0%
+Phase 10 ○  Phase 11 ○  Phase 12 ○
+```
 
 ## Performance Metrics
 
@@ -46,15 +48,14 @@ Progress: [░░░░░░░░░░] 0%
 |-------|-------|-------|----------|
 | - | - | - | - |
 
-**Recent Trend:**
+**Recent Trend (from v1.2):**
 
-- Last 5 plans: —
-- Trend: —
-
-*Updated after each plan completion*
+| Phase | Duration | Tasks | Files |
+|-------|----------|-------|-------|
 | Phase 07-skill-discovery P01 | 87s | 2 tasks | 1 files |
 | Phase 08-skill-selection P01 | 131s | 2 tasks | 2 files |
 | Phase 09-context-injection P01 | 127s | 2 tasks | 1 files |
+| Phase 10-command-discoverability P01 | 68s | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -63,32 +64,23 @@ Progress: [░░░░░░░░░░] 0%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- [v1.2 Roadmap]: Three-phase build — discovery silent first, then selection UI, then context injection — lets each phase be independently tested
-- [v1.2 Roadmap]: Skill paths are project-local only (`.claude/skills/`, `.opencode/skills/`, `.agents/skills/`); global (~/.claude/skills/) deferred to GSKILL-01
-- [v1.2 Roadmap]: Derive skill paths from already-resolved PR_REVIEW_DIR, never from raw `__CONFIG_DIR__` literal (install-time placeholder, not runtime)
-- [v1.2 Roadmap]: Use `path.join()` throughout for Windows cross-platform safety (repo runs on win32)
-- [v1.2 Roadmap]: Require explicit user selection before any skill content is injected (OWASP LLM01:2025 prompt injection guard)
-- [Phase 07-01]: Use process.cwd() as anchor for all four skill dirs (not path.dirname(PR_REVIEW_DIR)) — correct for both local and global installs
-- [Phase 07-01]: Store relDir string as source field (not path.join result) to avoid Windows backslash in display values
-- [Phase 08-01]: Use readline.createInterface for interactive TTY prompt instead of AskUserQuestion (D-01)
-- [Phase 08-01]: Flag parsing in agent layer (pr-reviewer.md), not command layer (review.md) — consistent with existing --post/--focus pattern (D-05)
-- [Phase 08-01]: No 2>/dev/null on Step 1b node call so D-10 stderr messages reach the user
-- [Phase 09-01]: Step 1c outputs under ## Active Skills Context heading — this heading is the contract between injection and Step 2 conditional reference
-- [Phase 09-01]: Step 2 uses conditional phrasing for Active Skills Context to avoid hallucinating requirements when no skills selected (Pitfall 4)
-- [Phase 09-01]: config.json skills field always written with empty array when no skills selected — consumers never need to handle missing field (D-08)
+- [v1.3]: Follow GSD pattern for multi-framework — config-driven detection at install time, not runtime-sniffing
+- [v1.3]: Agents stay as plain markdown with abstract tool names, runtime maps to native implementation
+- [v1.3]: Backlog Phase 999.1 (--help flag) promoted to Phase 10 as DISC-01
+- [Phase 10-command-discoverability]: Step 0 help-flag-check pattern established: intercept --help before any processing in review command
+- [Phase 10-command-discoverability]: argument-hint append-only: [--help] appended at end, original flag order preserved
 
 ### Pending Todos
 
-None yet.
+None.
 
 ### Blockers/Concerns
 
-- Phase 8 (Skill Selection): Verify exact behavior of `AskUserQuestion` when stdin is not a TTY before implementing fallback logic
-- Phase 8 (Skill Selection): Decide whether `--skills` flag parsing belongs in `review.md` (command layer) or `pr-reviewer.md` (agent reads args directly)
-- Phase 9 (Context Injection): Validate real-world skill file sizes before hardcoding a token cap (research recommends ~4000 tokens)
+- Phase 11 planning note: OpenCode tool name exact values are MEDIUM confidence (community source). Verify against opencode.ai/docs/tools/ before writing installer tool map.
+- Phase 11 planning note: `AskUserQuestion` used in review agent interactive flow — must resolve to bash readline approach (already present in Step 1b) or add to tool name map. Choose one explicitly in Phase 11 plan.
 
 ## Session Continuity
 
-Last session: 2026-04-01T03:19:18.687Z
-Stopped at: Completed 09-01-PLAN.md
+Last session: 2026-04-01T05:56:38.045Z
+Stopped at: Completed 10-01-PLAN.md
 Resume file: None

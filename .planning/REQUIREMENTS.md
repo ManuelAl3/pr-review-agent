@@ -1,65 +1,56 @@
-# Requirements: PR Review Agent v1.2
+# Requirements: PR Review Agent v1.3
 
 **Defined:** 2026-03-31
 **Core Value:** The developer gets a complete review-to-resolution cycle without leaving their AI assistant: review a PR, see findings, fix them, and have every fix tracked on GitHub with commit links.
 
-## v1.2 Requirements
+## v1.3 Requirements
 
-Requirements for skill-aware PR review. Each maps to roadmap phases.
+Requirements for multi-framework support and discoverability. Each maps to roadmap phases.
 
-### Skill Discovery
+### Discoverability
 
-- [x] **SKILL-01**: Review agent detects skill files from the project's working directory (scans `.claude/skills/`, `.opencode/skills/`, `.agents/skills/` — whichever exist)
-- [x] **SKILL-02**: Agent parses SKILL.md frontmatter (name + description) with graceful fallback when frontmatter is missing
+- [x] **DISC-01**: Running `/pr-review:review --help` prints a formatted list of all available flags with descriptions instead of starting a review
+- [x] **DISC-02**: Command frontmatter `argument-hint` reflects all current flags including `--skills` from v1.2
 
-### Skill Selection
+### Runtime Compatibility
 
-- [x] **SEL-01**: Interactive prompt lets developer choose "all skills" or select specific ones before review runs
-- [x] **SEL-02**: `--skills` flag for non-interactive mode (`--skills all`, `--skills none`, `--skills name1,name2`)
-- [x] **SEL-03**: No prompt shown when project has zero skills (review continues normally)
-
-### Context Injection
-
-- [ ] **CTX-01**: Selected skill content is injected as mandatory review criteria alongside REVIEW-PLAN.md
-- [ ] **CTX-02**: Selected skills are recorded in config.json for traceability in the review output
+- [ ] **RTCOMPAT-01**: Agent and command files work on OpenCode without modification (PascalCase tool names auto-map, frontmatter parses correctly)
+- [ ] **RTCOMPAT-02**: Runtime differences are documented inline in agent files via compatibility blocks (what works, what degrades, fallback behavior)
+- [ ] **RTCOMPAT-03**: Installer cleans stale agent/command files on re-install while preserving user data (`findings.json`, `config.json`, `REVIEW-PLAN.md`)
 
 ## Future Requirements
 
-### Global Skills
+### Extended Runtime Support
 
-- **GSKILL-01**: Scan global skill directories (~/.claude/skills/, ~/.config/opencode/skills/) in addition to project-local
-
-### Advanced Selection
-
-- **ASEL-01**: Skill content truncation for oversized skill files (500-line cap)
-- **ASEL-02**: Skill source path display in selection prompt for trust visibility
+- **EXT-01**: Copilot agent file generation (`.github/agents/*.agent.md`) — agent-only, no commands
+- **EXT-02**: Runtime-config.json written at install time for conditional agent behavior
+- **EXT-03**: Global skills scanning (~/.claude/skills/, ~/.config/opencode/skills/)
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Global skills (~/.claude/skills/) | Only project-local for now — review should use project-relevant skills |
-| Auto-selection by file type | Anti-feature — breaks constantly, surprises developers |
-| Skill content truncation | Defer until real-world usage shows it's needed |
-| Monorepo nested skill discovery | Claude Code runtime behavior, not agent responsibility |
+| Kiro support | JSON-only agent format — incompatible with markdown agents |
+| Copilot slash commands | No file-based command installation system |
+| Tool name placeholders (`__TOOL_READ__` etc.) | Over-engineering — PascalCase works across runtimes |
+| `runtime-config.json` | No proven need for runtime-conditional agent behavior yet |
+| Global skills (`~/.claude/skills/`) | Deferred from v1.2, still not needed |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SKILL-01 | Phase 7 | Complete |
-| SKILL-02 | Phase 7 | Complete |
-| SEL-01 | Phase 8 | Complete |
-| SEL-02 | Phase 8 | Complete |
-| SEL-03 | Phase 8 | Complete |
-| CTX-01 | Phase 9 | Pending |
-| CTX-02 | Phase 9 | Pending |
+| DISC-01 | Phase 10 | Complete |
+| DISC-02 | Phase 10 | Complete |
+| RTCOMPAT-01 | Phase 11 | Pending |
+| RTCOMPAT-02 | Phase 11 | Pending |
+| RTCOMPAT-03 | Phase 12 | Pending |
 
 **Coverage:**
-- v1.2 requirements: 7 total
-- Mapped to phases: 7
+- v1.3 requirements: 5 total
+- Mapped to phases: 5
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-31*
-*Last updated: 2026-03-31 after roadmap creation*
+*Last updated: 2026-03-31 after roadmap created (Phases 10-12)*

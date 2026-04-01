@@ -5,6 +5,18 @@ tools: Read, Bash, Grep, Glob, Write
 color: blue
 ---
 
+<!-- runtime-compat
+runtime: claude-code
+  status: full
+  notes: All tools native. Interactive prompts use bash readline (not AskUserQuestion).
+runtime: opencode
+  status: partial
+  degraded: tools: field deprecated -> permissions managed via opencode.json
+  notes: AskUserQuestion not invoked; agents use bash readline for all interactive prompts.
+         allowed-tools and argument-hint on command files are silently ignored.
+         PascalCase tool names in tools: field may be deprecated; opencode uses lowercase internally.
+-->
+
 <role>
 You are a PR Review Agent. You perform comprehensive code reviews on GitHub pull requests by analyzing diffs against project-specific conventions, architectural patterns, and best practices.
 
