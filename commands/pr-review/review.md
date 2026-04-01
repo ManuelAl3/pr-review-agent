@@ -1,7 +1,7 @@
 ---
 name: pr-review:review
 description: Analyze a GitHub PR against project architectural patterns and generate an interactive review preview. Posts comments to GitHub optionally.
-argument-hint: "<pr-url-or-number> [--post] [--focus security|i18n|architecture|design-tokens|all] [--skills all|none|name1,name2]"
+argument-hint: "<pr-url-or-number> [--post] [--focus security|i18n|architecture|design-tokens|all] [--skills all|none|name1,name2] [--help]"
 allowed-tools:
   - Read
   - Write
@@ -33,6 +33,8 @@ PR identifier: $ARGUMENTS (GitHub URL, org/repo#N, or PR number)
 - `--focus architecture` — Focus on architectural patterns only
 - `--focus design-tokens` — Focus on design token violations only
 - `--focus all` — Full review (default)
+- `--skills all|none|name1,name2` — Choose which project skills provide review context
+- `--help` — Show available flags and usage information
 
 **Prerequisites:**
 - GitHub CLI (`gh`) installed and authenticated
@@ -44,6 +46,28 @@ user to customize the "Project-Specific Rules" section before proceeding.
 </context>
 
 <process>
+0. **Help flag check:** If `$ARGUMENTS` contains `--help`, print the flag reference below and stop. Do not proceed to Step 1.
+
+    ```
+    Usage: /pr-review:review <pr-url-or-number> [flags]
+
+    Flags:
+      --post                    Post findings as inline PR comments
+      --focus <category>        Limit review to a category (security, i18n,
+                                architecture, design-tokens, or all)
+      --skills <selection>      Choose skills for context (all, none, or
+                                comma-separated names)
+      --help                    Show this help message
+
+    Prerequisites:
+      gh CLI installed and authenticated
+      ./REVIEW-PLAN.md exists (run /pr-review:setup)
+
+    Related commands:
+      /pr-review:setup          Generate REVIEW-PLAN.md for your project
+      /pr-review:fix            Fix findings directly in source code
+    ```
+
 1. Verify gh CLI is available and authenticated
 2. Detect pr-review directory (local `__CONFIG_DIR__/pr-review/` or global `$HOME/__CONFIG_DIR__/pr-review/`)
 3. If REVIEW-PLAN.md doesn't exist at project root, generate it from template and notify user
