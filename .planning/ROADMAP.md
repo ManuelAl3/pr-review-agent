@@ -70,7 +70,9 @@ Plans:
   1. Running `npx pr-review-agent@latest` over an existing v1.2 install replaces all agent and command files with the current version
   2. After re-install, `findings.json`, `config.json`, and `REVIEW-PLAN.md` are unchanged
   3. No deprecated or renamed agent/command files from prior versions remain alongside the new ones
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 12-01-PLAN.md — Add cleanStaleFiles helper and version detection to installer
 
 ## Progress
 
@@ -86,8 +88,8 @@ Plans:
 | 8. Skill Selection | v1.2 | 1/1 | Complete | 2026-04-01 |
 | 9. Context Injection | v1.2 | 1/1 | Complete | 2026-04-01 |
 | 10. Command Discoverability | v1.3 | 1/1 | Complete    | 2026-04-01 |
-| 11. OpenCode Compatibility | v1.3 | 1/1 | Complete   | 2026-04-01 |
-| 12. Installer Robustness | v1.3 | 0/? | Not started | - |
+| 11. OpenCode Compatibility | v1.3 | 1/1 | Complete    | 2026-04-01 |
+| 12. Installer Robustness | v1.3 | 0/1 | Not started | - |
 
 ## Backlog
 

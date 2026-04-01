@@ -132,6 +132,22 @@ function uninstall(configDir) {
   log('');
 }
 
+// ===== Upgrade cleanup =====
+function cleanStaleFiles(configDir) {
+  const stale = [
+    path.join(configDir, 'commands', 'pr-review'),
+    path.join(configDir, 'agents', 'pr-reviewer.md'),
+    path.join(configDir, 'agents', 'pr-fixer.md'),
+  ];
+  for (const p of stale) {
+    if (fs.existsSync(p)) {
+      const stat = fs.statSync(p);
+      if (stat.isDirectory()) fs.rmSync(p, { recursive: true });
+      else fs.unlinkSync(p);
+    }
+  }
+}
+
 // ===== Install =====
 function install(runtime, configDir) {
   const rt = RUNTIMES[runtime];
@@ -142,6 +158,19 @@ function install(runtime, configDir) {
 
   log(`  ${c.cyan}Installing for ${rt.name}...${c.reset}`);
   log('');
+
+  // 0. Upgrade detection and cleanup (per D-02: cleanup first, before any copying)
+  const versionPath = path.join(templateDest, '.version');
+  const prevVersion = fs.existsSync(versionPath)
+    ? fs.readFileSync(versionPath, 'utf-8').trim()
+    : null;
+
+  if (prevVersion && prevVersion !== VERSION) {
+    log(`  ${c.yellow}Upgrading from v${prevVersion} -> v${VERSION}${c.reset}`);
+    log('');
+  }
+
+  cleanStaleFiles(configDir);
 
   // 1. Copy commands
   const cmdSrc = path.join(PKG_ROOT, 'commands', 'pr-review');
