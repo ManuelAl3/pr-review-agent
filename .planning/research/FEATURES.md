@@ -1,42 +1,57 @@
-# Feature Landscape: Skill-Aware PR Review
+# Feature Research
 
-**Domain:** AI-powered PR review with skill detection and selection
+**Domain:** Multi-framework AI agent toolkit with command discoverability (v1.3 milestone)
 **Researched:** 2026-03-31
-**Confidence:** HIGH (skills documentation verified from official Claude Code docs + OpenCode docs)
+**Confidence:** HIGH (verified against Claude Code docs, OpenCode docs, Agent Skills spec, agentskills.io)
 
 ---
 
-## Context: What Already Exists
+## Context: What This Research Covers
 
-The prior milestone (v1.1) delivered the full fix-and-resolution loop. The existing feature set:
+This document supersedes the v1.2 FEATURES.md. The prior milestone (v1.2) delivered skill-aware PR review with multi-path discovery, interactive selection, and context injection. That feature set is shipped.
 
-- `pr-reviewer.md` reads `REVIEW-PLAN.md` + `CLAUDE.md`, fetches PR diffs, posts inline GitHub
-  comments, writes `findings.json`
-- `pr-fixer.md` reads findings, applies fixes, commits one per finding, pushes, replies to threads
-- HTML UI: finding viewer, filter by severity/category/status, edit and persist findings
-- Zero-dependency installer (`npx pr-review-agent`) with placeholder system for multi-runtime support
+**v1.3 goal:** Make the toolkit work seamlessly across AI assistant runtimes and let users discover available features without reading source files.
 
-**What is missing:** The reviewer currently does NOT read project skills. The `<project_context>`
-block in `pr-reviewer.md` mentions skills with "check for project-specific skills" but provides no
-implementation for discovering, listing, or injecting them into the analysis.
+**Scope of new features:**
+1. `--help` flag on review command showing available flags with descriptions
+2. Runtime-aware installer that configures paths and tool mappings per detected runtime
+3. Agent files use tool names compatible with multiple runtimes
+4. Config-driven model resolution per runtime
+5. Documented fallbacks when runtime capabilities differ
 
 ---
 
-## Skills Ecosystem: What They Are
+## How Real Tools Handle Discovery and Help Text
 
-Skills in Claude Code (and OpenCode) are markdown files (`SKILL.md`) stored in directories under
-`.claude/skills/`, `.opencode/skills/`, `.agents/skills/`, or `~/.config/opencode/skills/`. Each
-skill has YAML frontmatter (`name`, `description`) and a markdown body containing domain-specific
-rules, patterns, and instructions. Skills represent specialized knowledge — architectural conventions,
-code style rules, domain patterns — that agents apply when relevant.
+### Finding 1: Claude Code — argument-hint is the only native discovery mechanism
 
-**For code review, skills represent additional review criteria.** A `typescript-conventions` skill
-defines naming rules. A `react-component-patterns` skill describes how components should be
-structured. An `api-security` skill specifies what API endpoints must validate. These are exactly
-the kinds of project-specific rules that make a PR review meaningful.
+Claude Code renders the `argument-hint` frontmatter field in the slash command autocomplete popup. The `/help` built-in command lists all commands with their `description` field. Neither mechanism describes individual flags — the agent must detect `--help` in `$ARGUMENTS` and print formatted help itself. This is the expected pattern; Claude Code has no built-in `--help` rendering for custom commands.
 
-**Confidence:** HIGH — verified from official Claude Code skills documentation and OpenCode skills
-documentation (code.claude.com/docs/en/skills, opencode.ai/docs/skills/).
+Source: https://code.claude.com/docs/en/skills — HIGH confidence
+
+### Finding 2: OpenCode — same pattern, same gap
+
+OpenCode uses the same YAML frontmatter approach. The TUI command picker shows `description`. The `argument-hint` is shown in autocomplete. No built-in `--help` rendering for custom commands — the agent must handle it.
+
+Source: https://opencode.ai/docs/commands/ — HIGH confidence
+
+### Finding 3: Agent Skills open standard — adopted by 30+ runtimes as of Dec 2025
+
+Anthropic published the Agent Skills open standard on December 18, 2025. It has been adopted by Claude Code, OpenCode, VS Code Copilot, GitHub Copilot, Cursor, Gemini CLI, OpenAI Codex, Goose, Amp, Roo Code, and 20+ others. The standard defines a minimal SKILL.md frontmatter: `name` (required), `description` (required), `allowed-tools` (optional, experimental), `compatibility` (optional), `metadata` (optional). The `compatibility` field is the mechanism for documenting platform-specific constraints like `gh` CLI requirements.
+
+Source: https://agentskills.io/specification — HIGH confidence
+
+### Finding 4: Tool name mapping between Claude Code and OpenCode
+
+Claude Code uses PascalCase tool names (`Read`, `Write`, `Edit`, `Bash`, `Grep`, `Glob`, `WebFetch`, `TodoWrite`). OpenCode uses lowercase (`read`, `write`, `edit`, `bash`, `grep`, `glob`, `webfetch`, `todowrite`). OpenCode automatically maps PascalCase tool names from Claude Code-authored skills via an injected tool mapping guide. This means writing tool names in Claude Code PascalCase format works on both runtimes without modification.
+
+Source: Claude Code vs OpenCode compatibility guide — MEDIUM confidence (community doc, not official OpenCode docs)
+
+### Finding 5: Model ID formats differ by runtime
+
+Claude Code uses `claude-sonnet-4-5` style short IDs. OpenCode expects full paths like `anthropic/claude-sonnet-4-5`. Some runtimes omit the `model:` field entirely and inherit from user settings. The only safe approach is for the installer to write a model config at install time based on detected runtime — not hardcode a model ID into agent frontmatter.
+
+Source: OpenCode agents docs (opencode.ai/docs/agents/) — HIGH confidence for OpenCode. Claude Code practice inferred from current codebase — MEDIUM confidence.
 
 ---
 
@@ -44,106 +59,94 @@ documentation (code.claude.com/docs/en/skills, opencode.ai/docs/skills/).
 
 ### Table Stakes (Users Expect These)
 
-Features that must exist for skill-aware review to feel complete. Missing any of these means the
-feature is half-built.
+Features users assume exist for any multi-runtime CLI toolkit. Missing these makes the product feel unfinished.
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| Detect skills from standard directories | Users store skills in `.claude/skills/`, `.opencode/skills/`, `.agents/skills/`, `~/.config/opencode/skills/`. The agent must scan all four paths — else it silently misses available rules. | LOW | Bash `find`/`ls` across known paths. Glob each `*/SKILL.md`. No parsing required to enumerate. |
-| Show developer which skills were found | Developer must confirm the agent is using the right context before review runs. No visibility = no trust. "Review running against 3 skills" is not enough — show names. | LOW | Print a numbered list: `[1] typescript-conventions`, `[2] react-patterns`. One line per skill. |
-| Let developer choose all skills or select subset | Not every skill is relevant to every PR. An i18n skill should not clutter a security-focused review. Developer chooses scope, agent respects it. | MEDIUM | Two paths: "all" (skip selection) or interactive list with numbered input. Uses `AskUserQuestion` tool or sequential prompts. |
-| Pass selected skill content as review context | Selected skills must actually inform the analysis — not just be listed. The agent must read each skill's `SKILL.md` and treat its rules as mandatory review criteria alongside `REVIEW-PLAN.md`. | MEDIUM | Read each selected `SKILL.md`, inject content into the analysis step's context. Append after REVIEW-PLAN.md in the priority stack. |
-| Skip review if no skills found (gracefully) | When a project has no skills, the agent should not fail or hang waiting for selection. It should proceed with REVIEW-PLAN.md alone and inform the developer. | LOW | Guard check: if zero skills found, print "No skills found — proceeding with REVIEW-PLAN.md only" and skip selection step. |
-| Respect the existing `--focus` flag alongside skill selection | Skill selection and focus scoping are orthogonal. Developer may want "all skills, security focus only" or "typescript skill only, all categories." Both must work together. | LOW | Selection is about context injection; `--focus` is about category filtering. They compose naturally — no conflict in implementation. |
+| `--help` flag on review command | Every CLI tool responds to `--help`; developers try it before reading docs | LOW | Agent detects `--help` in `$ARGUMENTS`, prints formatted flag reference. Pure agent logic change — no installer work. |
+| Help text shows all flags with descriptions | Flags `--post`, `--focus`, `--skills` are invisible without documentation; users guess or abandon | LOW | Hardcoded in review agent output block. Show flag name, argument format, and one-line description per flag. |
+| `argument-hint` shows full flag syntax | Claude Code and OpenCode show this in autocomplete — it is the first touchpoint for new users | LOW | Current `argument-hint` may show only `<pr-url>`. Extend to `<pr-url> [--post] [--focus topics] [--skills list] [--help]` |
+| Installer writes runtime-aware config | Model IDs and tool path conventions differ by runtime. Agents must resolve both at runtime. | MEDIUM | Installer already detects Claude Code vs OpenCode. Add: write a `pr-review/runtime-config.json` with `{ "runtime": "...", "model": "..." }` at install time. |
+| Agent files install to the correct location per runtime | Wrong directory means commands are invisible | LOW | Already handled by `__CONFIG_DIR__` placeholder. Verify `agents/` dir path is also covered for all runtimes. |
+| `allowed-tools` list works on both runtimes | Command files declare tools; runtime must honor them | LOW | Write in Claude Code PascalCase. OpenCode auto-maps. No change needed — verify existing files already use PascalCase consistently. |
 
 ### Differentiators (Competitive Advantage)
 
-Features that distinguish this toolkit from generic code review tools. These are where the
-skill-aware feature becomes compelling rather than table stakes.
+Features that set this toolkit apart from single-runtime agent toolkits.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| Skills as additional mandatory rules (not optional hints) | Most tools apply generic LLM checks. Skill rules are project-authored, versioned, and should be enforced consistently — not treated as optional context. The review agent should report a finding when code violates a skill rule, same as it would for a REVIEW-PLAN.md rule. | MEDIUM | Achieved through context injection order: skills sit alongside REVIEW-PLAN.md in the analysis step's mandatory criteria list. No special code path needed — it is a context-assembly problem. |
-| Multi-framework discovery (Claude Code + OpenCode + generic) | Teams use different AI assistants. A project may have skills in `.claude/skills/` from one developer and `.agents/skills/` from another. Scanning all four paths means the review agent sees all available rules regardless of which assistant wrote them. | LOW | Four directory scans, deduplicated by skill name (first found wins, consistent with OpenCode's precedence model). |
-| Surface skill names in findings categories | When a finding is based on a skill rule, the category field can reflect the skill name (e.g., `typescript-conventions` instead of the generic `architecture`). This makes findings traceable to their source rule. | MEDIUM | Requires the agent to tag each finding with a source: REVIEW-PLAN.md category or skill name. The category field in the findings schema already supports arbitrary strings. |
-| `--skills` flag for non-interactive skill selection | Experienced users running review in scripts or repeatedly want to skip the interactive prompt. `--skills typescript-conventions,react-patterns` selects skills directly from the command line. | LOW | Parse `--skills` flag in the command layer. Split on comma, validate each name exists in discovered skills. Pass selected list to agent. |
-| Graceful handling of large skill files | A skill with 500+ lines of conventions would bloat context. Skills that are too long should be summarized: use the `description` frontmatter and the first section heading only if the body exceeds a threshold. | MEDIUM | Check character count of skill body. Above threshold (e.g., 4000 chars), truncate to frontmatter description + first section. Print a warning: "Skill X truncated to summary (body: N chars)." |
+| Single install works on any Agent Skills-compatible runtime | Users can switch between Claude Code, OpenCode, Cursor, Gemini CLI without reinstalling | MEDIUM | Requires: (1) `compatibility` field on command frontmatter documenting `gh` CLI requirement, (2) verify tool names are PascalCase throughout, (3) runtime config file written by installer |
+| `--help` output includes usage examples, not just flag list | `--focus security,i18n` is more informative than `--focus <topics>` | LOW | Pure text change inside agent help output. Zero runtime complexity. |
+| Runtime capability detection with explicit config file | Agents know what runtime they are on via a config file, not by guessing from environment | MEDIUM | Installer writes `runtime-config.json`. Agents can optionally shell-inject it for conditional behavior. The file is the single source of truth about runtime context. |
+| `compatibility` field documents `gh` CLI dependency | Agent Skills-compatible runtimes surface this to users before install | LOW | One-line frontmatter addition. Enables the broader ecosystem to warn about the `gh` CLI requirement. |
+| Graceful degradation when model field is absent | On runtimes where the installer cannot detect a model, agents fall back to runtime default rather than failing | LOW | In `model:` field, write `""` (blank) or omit when runtime config has no model preference. Runtimes already handle absent `model:` by using their default. |
 
 ### Anti-Features (Commonly Requested, Often Problematic)
 
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| Auto-select skills based on changed file paths | Seems smart: if PR touches `*.tsx`, auto-load the React skill. Reduces friction. | Path-based heuristics break constantly: a PR touching `utils/api.ts` might need the React skill if it exports hooks. The developer knows context; the agent guessing creates surprises. | Always show the skills list and let the developer choose. The default of "all skills" is safe. |
-| Persist skill selection between review runs | Seems convenient: remember which skills were selected last time. | Persisted state becomes stale. A new skill gets added, the developer runs review, the old selection silently excludes it. Hidden state breaks trust. | Always discover fresh, always show what was found. The `--skills` flag handles the "scripted" use case for repeatable runs without persistence. |
-| Load skills from the PR branch's config directory | PR branches may have different skills than the current branch. Checking out the PR branch to read its skills seems thorough. | This requires a branch checkout before the review even starts, adds complexity, and creates state the user did not request. The PR review is done against the author's code but informed by the reviewer's conventions. | Read skills from the current working tree (where the developer is) — this is their project's conventions, which is the correct authority. |
-| Install skills from a registry during review | "No skills found? Here are popular ones you can install." | Scope creep. This toolkit installs agents into AI assistants, it does not manage skill libraries. Installing unknown skills during a review erodes the zero-dependency, zero-surprise model. | Document that developers create skills manually or use their AI assistant's skill management tools. Out of scope for this toolkit. |
-| Parse nested skill reference files (examples/, references/) | Skills can have supporting files. Parsing them all would capture richer context. | Skills with `references/` can be megabytes of documentation. Reading all supporting files creates unpredictable context size and slow reviews. | Read only `SKILL.md`. If the skill author wants rules in scope for reviews, they belong in `SKILL.md`. This is documented guidance, not a technical limitation. |
+| Runtime auto-detection inside agent markdown | "Let the agent detect whether it's on Claude Code or OpenCode and use the right tool names" | Agent markdown cannot execute code before the LLM sees it. Conditional logic in markdown is fragile and confuses the model. | Installer detects runtime at install time and writes a config file. Agent reads it via shell injection if needed. |
+| Separate command files per runtime | "Write `review-claude.md` and `review-opencode.md` for cleaner targeting" | Distribution complexity doubles for every new runtime. Impossible to maintain at scale. Users must know which to install. | One command file with standard frontmatter. Installer adjusts only the `model:` field and install path. |
+| Generic tool-name variables in agent body | "Use `$TOOL_READ` instead of `Read` so it works everywhere" | No runtime supports variable substitution for tool names. This would break all runtimes without exception. | Write tool names in Claude Code PascalCase format. OpenCode maps automatically. Other runtimes follow similar conventions. |
+| MCP server dependency for runtime detection | "Use an MCP server to expose runtime metadata to agents" | Requires users to configure and run an MCP server just for discoverability. Violates the zero-dependency constraint of this project. | Installer writes a JSON config file. Agent reads it with a `Bash` call. No MCP required. |
+| Full SKILL.md directory migration now | "Migrate all commands to SKILL.md directory format to get full Agent Skills portability" | Significant structural change to installer, directory layout, and distribution model. High risk for a milestone focused on discoverability. | Use the `compatibility` field to document requirements within the existing flat `.md` command file format. Migrate to SKILL.md directories in v2.0. |
 
 ---
 
 ## Feature Dependencies
 
 ```
-Detect skills from multiple directories
-    └──required by──> Show available skills list
-                          └──required by──> Interactive skill selection
-                                                └──required by──> Pass selected skills as context
-                                                                      └──required by──> Skill-informed findings
+--help flag
+    └──requires──> argument-hint update (both belong in one phase — same discoverability story)
 
---skills flag (non-interactive)
-    └──alternative to──> Interactive skill selection
-                              └──feeds into──> Pass selected skills as context
+multi-runtime install
+    └──requires──> runtime detection in installer (already exists for Claude Code / OpenCode)
+    └──requires──> runtime-config.json write at install time (new)
 
-Pass selected skills as context
-    └──enhances──> Existing REVIEW-PLAN.md analysis (additive, not replacement)
+agent tools compatibility
+    └──requires──> verify PascalCase tool names throughout existing agent files (audit step)
+    └──enhances──> multi-runtime install (tools that work on both runtimes)
 
-Graceful empty state (no skills found)
-    └──guards──> Interactive skill selection step
+model config resolution
+    └──requires──> runtime-config.json (installer writes model ID)
+    └──enhances──> agent frontmatter (model: field reads from config, not hardcoded)
+
+Agent Skills portability (v2+)
+    └──requires──> SKILL.md directory format migration
+    └──enhances──> multi-runtime install
+    └──conflicts with──> current flat .md command file structure
 ```
 
 ### Dependency Notes
 
-- **Detect skills is the foundation:** Everything else depends on reliable, consistent discovery
-  across all four paths. Get this right first.
-- **Selection requires detection:** The interactive step cannot run before the discovery step
-  completes and returns a list.
-- **Context injection is additive:** Selected skill content sits alongside `REVIEW-PLAN.md` in the
-  analysis step. No existing logic changes — it is an addition to the context assembly, not a
-  replacement.
-- **`--skills` flag bypasses interactive selection only:** Discovery still runs to validate that the
-  named skills exist. If a named skill is not found, fail with a clear error rather than silently
-  omitting it.
+- `--help` flag and `argument-hint` update are fully independent of all runtime work. They are pure text changes. Ship together in one phase.
+- Runtime config file is the keystone for multi-runtime support. Everything that needs to be runtime-aware reads from this file. The installer already detects runtimes — the config file write is the missing piece.
+- Tool name audit (PascalCase verification) is a prerequisite for multi-runtime claims. Must confirm existing agent files are consistent before asserting cross-runtime compatibility.
+- SKILL.md directory migration is a future v2.0 item. It is a high-risk structural change that does not fit the v1.3 scope. The `compatibility` frontmatter field delivers Agent Skills ecosystem discoverability without the migration cost.
 
 ---
 
-## MVP Definition
+## MVP Definition for v1.3
 
-### Launch With (v1.2)
+### Launch With (v1.3 core)
 
-Minimum viable feature set. These together deliver the stated milestone goal.
+Minimum required to deliver the milestone goal: discoverability + multi-runtime readiness.
 
-- [ ] **Detect skills** from `.claude/skills/`, `.opencode/skills/`, `.agents/skills/`,
-  `~/.config/opencode/skills/` — global and project-local paths for each
-- [ ] **List found skills** to developer with names before review begins
-- [ ] **Interactive selection**: "all skills" or pick by number
-- [ ] **Inject selected skill content** into the analysis context (read each `SKILL.md`, add to
-  mandatory review criteria after `REVIEW-PLAN.md`)
-- [ ] **Graceful empty state**: if no skills found, skip selection and proceed with REVIEW-PLAN.md
+- [ ] `--help` flag on review command — agent detects `--help` in `$ARGUMENTS`, outputs a formatted table of all flags (`--post`, `--focus`, `--skills`, `--help`) with argument format and one-line description — zero runtime complexity, high discoverability value
+- [ ] `argument-hint` update — extend to show `<pr-url> [--post] [--focus topics] [--skills list] [--help]` in autocomplete for both Claude Code and OpenCode
+- [ ] Runtime-aware installer output — installer writes `.{config-dir}/pr-review/runtime-config.json` with `{ "runtime": "claude-code|opencode", "model": "..." }` at install time
+- [ ] Tool name audit — confirm all existing agent files use PascalCase tool names consistently; fix any lowercase or inconsistent names found
 
-### Add After Validation (v1.2.x)
+### Add After Validation (v1.3 follow-on)
 
-- [ ] **`--skills` flag** for non-interactive skill selection — adds value once users are
-  comfortable with skill-aware review and want to script or repeat runs
-- [ ] **Findings tagged with skill source** in category field — adds traceability but requires
-  findings schema consideration
+- [ ] `compatibility` field on command frontmatter documenting `gh` CLI requirement — enables Agent Skills ecosystem tooling to surface this constraint — one-line change per file
+- [ ] `--help` output includes usage examples (not just flags) — add after confirming flag detection works correctly in both runtimes
 
 ### Future Consideration (v2+)
 
-- [ ] **Skill file size handling / truncation** — only needed if real-world skill files are
-  consistently too large; validate first
-- [ ] **Multi-package / monorepo skill scoping** — skills from subdirectory `.claude/skills/`
-  auto-loaded by Claude Code but not currently part of the discovery path in this agent; defer
-  until needed
+- [ ] Full SKILL.md directory format adoption — restructures `commands/` and `agents/` dirs into `skills/` directories; unlocks 30+ Agent Skills-compatible runtimes beyond Claude Code and OpenCode; significant installer changes; defer until evidence that users need it
+- [ ] Per-runtime agent files with injected tool mapping — only needed if a target runtime cannot auto-map PascalCase tool names; not needed for Claude Code or OpenCode
 
 ---
 
@@ -151,64 +154,31 @@ Minimum viable feature set. These together deliver the stated milestone goal.
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| Detect skills (multi-path) | HIGH | LOW | P1 |
-| List found skills to developer | HIGH | LOW | P1 |
-| Interactive selection (all / subset) | HIGH | MEDIUM | P1 |
-| Inject selected skills as review context | HIGH | MEDIUM | P1 |
-| Graceful empty state | HIGH | LOW | P1 |
-| `--skills` flag (non-interactive) | MEDIUM | LOW | P2 |
-| Findings tagged with skill source | MEDIUM | MEDIUM | P2 |
-| Skill file size guard (truncation) | LOW | MEDIUM | P3 |
+| `--help` flag on review command | HIGH | LOW | P1 |
+| `argument-hint` update | HIGH | LOW | P1 |
+| Tool name audit (PascalCase verification) | MEDIUM | LOW | P1 |
+| Runtime-aware installer config file | HIGH | MEDIUM | P1 |
+| `compatibility` frontmatter field | LOW | LOW | P2 |
+| `--help` with usage examples | MEDIUM | LOW | P2 |
+| Full SKILL.md directory format migration | HIGH (long-term) | HIGH | P3 |
 
 **Priority key:**
-- P1: Must have for v1.2 launch
-- P2: Should have, add when core is stable
-- P3: Nice to have, validate need first
+- P1: Must have for v1.3 launch
+- P2: Should have, add in v1.3 if effort allows
+- P3: Defer to v2.0 or later
 
 ---
 
-## Implementation Notes for Roadmap
+## Competitor Feature Analysis
 
-### Discovery paths to scan (in order, deduplicating by name)
-
-Project-local paths (scanned first — project overrides global):
-1. `./__CONFIG_DIR__/skills/*/SKILL.md`
-2. `./.opencode/skills/*/SKILL.md`
-3. `./.agents/skills/*/SKILL.md`
-
-Global paths (user-level):
-4. `$HOME/__CONFIG_DIR__/skills/*/SKILL.md`
-5. `$HOME/.config/opencode/skills/*/SKILL.md`
-6. `$HOME/.agents/skills/*/SKILL.md`
-
-First occurrence of a skill name wins. Log a note if duplicates are found.
-
-### Context injection order (review analysis step)
-
-Priority stack for the reviewer:
-1. Security vulnerabilities (always highest — unchanged from existing agent)
-2. REVIEW-PLAN.md rules (existing — unchanged)
-3. Selected skill rules (NEW — appended after REVIEW-PLAN.md)
-4. CLAUDE.md conventions (existing — unchanged)
-
-Skills do not outrank REVIEW-PLAN.md but they are mandatory, not optional. The agent must check
-code against skill rules with the same rigor as checklist items.
-
-### Where the change lives in the existing agent
-
-The implementation touches exactly two places in `pr-reviewer.md`:
-
-1. **Step 1 (Load Review Context):** After reading REVIEW-PLAN.md, scan for skills, show list,
-   run selection, read selected skill files.
-2. **Step 2 (Analyze Code Changes):** Apply skill rules as additional criteria alongside the
-   existing REVIEW-PLAN.md checklist.
-
-The `review.md` command file may also need:
-- Updated `argument-hint` to show `[--skills name1,name2]`
-- Updated `<process>` block to describe the skill selection step
-
-No changes needed to: `pr-fixer.md`, `fix.md`, `setup.md`, `serve.js`, `index.html`,
-`install.js`, or the findings schema. The feature is entirely contained to the review flow.
+| Feature | Claude Code | OpenCode | Agent Skills Spec | Our Approach |
+|---------|-------------|----------|-------------------|--------------|
+| Command discovery | `/help` lists commands; `description` field | TUI picker; `description` field | Not specified; runtime-dependent | Use `description` + `argument-hint` fields |
+| Flag documentation | `argument-hint` in autocomplete only | Same | Not specified | Agent detects `--help` in `$ARGUMENTS`, prints formatted output |
+| Tool allowlist | `allowed-tools` PascalCase | Auto-maps from PascalCase | `allowed-tools` (experimental) | Write PascalCase; works on both runtimes |
+| Model config | `model:` frontmatter (short ID) | `model:` frontmatter (full path URI) | Not in spec | Installer writes runtime-specific model ID to config file |
+| Cross-runtime portability | Via Agent Skills standard | Via Agent Skills standard | Core purpose of spec | `compatibility` field + standard frontmatter (flat files, not SKILL.md dirs yet) |
+| Built-in `--help` for custom commands | Not supported | Not supported | Not in spec | Agent-level detection: if `$ARGUMENTS` contains `--help`, print help and exit |
 
 ---
 
@@ -216,26 +186,26 @@ No changes needed to: `pr-fixer.md`, `fix.md`, `setup.md`, `serve.js`, `index.ht
 
 | Area | Confidence | Reason |
 |------|------------|--------|
-| Skills discovery paths | HIGH | Verified from official Claude Code docs (code.claude.com/docs/en/skills) and OpenCode docs (opencode.ai/docs/skills/) — both list exact paths |
-| SKILL.md structure | HIGH | Read official Claude Code docs + read actual skill file in this repo (`.claude/skills/conventional-commit/SKILL.md`) |
-| Table stakes features | HIGH | Derived from project requirements in PROJECT.md + direct reading of pr-reviewer.md current state — no speculation |
-| Differentiator features | MEDIUM | Based on analysis of competitive code review tools and skills ecosystem patterns — partially training knowledge |
-| Anti-features | HIGH | Based on explicit PROJECT.md constraints, zero-dependency model requirements, and identified failure modes |
-| Implementation scope | HIGH | Traced directly to specific steps in pr-reviewer.md — the change surface is confirmed narrow |
+| Claude Code discovery mechanisms | HIGH | Official docs read directly (code.claude.com/docs/en/skills) |
+| OpenCode discovery mechanisms | HIGH | Official docs read directly (opencode.ai/docs/commands/) |
+| Agent Skills standard fields | HIGH | Specification read directly (agentskills.io/specification) |
+| Tool name mapping | MEDIUM | Community compatibility doc, not official OpenCode documentation |
+| Model ID format differences | HIGH for OpenCode | Official docs confirm full path format. MEDIUM for other runtimes (inferred). |
+| `--help` implementation approach | HIGH | Both runtimes inject `$ARGUMENTS` — agent-level detection is standard pattern |
 
 ---
 
 ## Sources
 
-- [Extend Claude with skills — Claude Code Docs](https://code.claude.com/docs/en/skills) — canonical
-  skills documentation, skills directory paths, SKILL.md structure, frontmatter fields (HIGH confidence)
-- [Agent Skills — OpenCode Docs](https://opencode.ai/docs/skills/) — OpenCode discovery paths and
-  SKILL.md format (HIGH confidence)
-- Direct reading of `agents/pr-reviewer.md` — current state of review agent, what it reads today
-- Direct reading of `.planning/PROJECT.md` — v1.2 requirements, constraints, key decisions
-- Direct reading of `.claude/skills/conventional-commit/SKILL.md` — real example of a SKILL.md file
-  in this project
+- [Extend Claude with skills — Claude Code Docs](https://code.claude.com/docs/en/skills) — frontmatter fields, argument-hint, allowed-tools, command discovery (HIGH confidence)
+- [Agent Skills open standard specification](https://agentskills.io/specification) — required/optional frontmatter fields, compatibility field, allowed-tools (HIGH confidence)
+- [Agent Skills adoption list](https://agentskills.io/home) — which runtimes support the standard (HIGH confidence)
+- [OpenCode commands documentation](https://opencode.ai/docs/commands/) — command frontmatter, description field, discovery (HIGH confidence)
+- [OpenCode tools documentation](https://opencode.ai/docs/tools/) — tool names, permissions model (HIGH confidence)
+- [OpenCode agents documentation](https://opencode.ai/docs/agents/) — model field format, frontmatter fields (HIGH confidence)
+- [Claude Code to OpenCode tool name mapping](https://lzw.me/docs/opencodedocs/joshuadavidthomas/opencode-agent-skills/advanced/claude-code-compatibility/) — PascalCase to lowercase mapping table (MEDIUM confidence — community doc)
+- [Claude Code vs OpenCode frontmatter differences](https://gist.github.com/RichardHightower/827c4b655f894a1dd2d14b15be6a33c0) — field comparison table (MEDIUM confidence — community gist)
 
 ---
-*Feature research for: Skill-Aware PR Review (v1.2)*
+*Feature research for: Multi-framework support and discoverability (v1.3 milestone)*
 *Researched: 2026-03-31*
