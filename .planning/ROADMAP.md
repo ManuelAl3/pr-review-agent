@@ -153,7 +153,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 09-01-PLAN.md — Add Step 1c skill injection, update Step 2 mandatory criteria, extend Step 3b config.json with skills array
+- [x] 09-01-PLAN.md — Add Step 1c skill injection, update Step 2 mandatory criteria, extend Step 3b config.json with skills array
 
 ## Progress
 

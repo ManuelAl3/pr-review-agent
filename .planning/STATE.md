@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Skill-Aware PR Review
 status: verifying
-stopped_at: Completed 08-01-PLAN.md
-last_updated: "2026-04-01T02:38:37.513Z"
+stopped_at: Completed 09-01-PLAN.md
+last_updated: "2026-04-01T03:19:18.693Z"
 last_activity: 2026-04-01
 progress:
   total_phases: 3
-  completed_phases: 2
-  total_plans: 2
-  completed_plans: 2
+  completed_phases: 3
+  total_plans: 3
+  completed_plans: 3
   percent: 0
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-31)
 
 **Core value:** The developer gets a complete review-to-resolution cycle without leaving their AI assistant: review a PR, see findings, fix them, and have every fix tracked on GitHub with commit links.
-**Current focus:** Phase 08 — skill-selection
+**Current focus:** Phase 09 — context-injection
 
 ## Current Position
 
-Phase: 9
-Plan: Not started
+Phase: 09 (context-injection) — EXECUTING
+Plan: 1 of 1
 Status: Phase complete — ready for verification
 Last activity: 2026-04-01
 
@@ -54,6 +54,7 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 | Phase 07-skill-discovery P01 | 87s | 2 tasks | 1 files |
 | Phase 08-skill-selection P01 | 131s | 2 tasks | 2 files |
+| Phase 09-context-injection P01 | 127s | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,9 @@ Recent decisions affecting current work:
 - [Phase 08-01]: Use readline.createInterface for interactive TTY prompt instead of AskUserQuestion (D-01)
 - [Phase 08-01]: Flag parsing in agent layer (pr-reviewer.md), not command layer (review.md) — consistent with existing --post/--focus pattern (D-05)
 - [Phase 08-01]: No 2>/dev/null on Step 1b node call so D-10 stderr messages reach the user
+- [Phase 09-01]: Step 1c outputs under ## Active Skills Context heading — this heading is the contract between injection and Step 2 conditional reference
+- [Phase 09-01]: Step 2 uses conditional phrasing for Active Skills Context to avoid hallucinating requirements when no skills selected (Pitfall 4)
+- [Phase 09-01]: config.json skills field always written with empty array when no skills selected — consumers never need to handle missing field (D-08)
 
 ### Pending Todos
 
@@ -85,6 +89,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-01T02:34:13.790Z
-Stopped at: Completed 08-01-PLAN.md
+Last session: 2026-04-01T03:19:18.687Z
+Stopped at: Completed 09-01-PLAN.md
 Resume file: None
